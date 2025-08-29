@@ -47,6 +47,25 @@ class MCPStreamableHttpServer {
     const sessionId = c.req.header(SESSION_ID_HEADER_NAME);
     console.error(`POST request received ${sessionId ? 'with session ID: ' + sessionId : 'without session ID'}`);
     
+    // Extract API key from Authorization header (preferred) or query parameter (fallback)
+    const authHeader = c.req.header('authorization');
+    const bearerApiKey = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    const apiKey = c.req.query('api_key'); // Fallback for testing
+    
+    const customerApiKey = bearerApiKey || apiKey;
+    
+    // Require API key on every request - stateless authentication
+    if (!customerApiKey) {
+      return c.json(
+        this.createErrorResponse("Authentication required: Please provide your API key via Authorization: Bearer YOUR_KEY header"),
+        401
+      );
+    }
+    
+    // Set API key for this request only
+    process.env.API_KEY_APIKEYAUTH = customerApiKey;
+    console.error(`API key provided ${bearerApiKey ? 'via Authorization header' : 'via query parameter'} for request`);
+    
     try {
       const body = await c.req.json();
       
@@ -175,6 +194,52 @@ export async function setupStreamableHttpServer(server: Server, port = 3000) {
   // Add a simple health check endpoint
   app.get('/health', (c) => {
     return c.json({ status: 'OK', server: SERVER_NAME, version: SERVER_VERSION });
+  });
+  
+  // Add an API key test endpoint for customers
+  app.get('/test-api-key', async (c) => {
+    const apiKey = c.req.query('api_key');
+    const authHeader = c.req.header('authorization');
+    const bearerApiKey = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    
+    const testApiKey = apiKey || bearerApiKey;
+    
+    if (!testApiKey) {
+      return c.json({ 
+        error: 'No API key provided',
+        message: 'Please provide your API key as ?api_key=YOUR_KEY or Authorization: Bearer YOUR_KEY header'
+      }, 400);
+    }
+    
+    try {
+      // Test the API key by making a simple call to Digistore24
+      const axios = await import('axios');
+      const response = await axios.default.post(
+        'https://www.digistore24.com/api/call/ping',
+        new URLSearchParams(),
+        {
+          headers: {
+            'X-DS-API-KEY': testApiKey,
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          timeout: 10000
+        }
+      );
+      
+      return c.json({
+        status: 'success',
+        message: 'API key is valid and working',
+        apiKeyValid: true,
+        response: response.data
+      });
+    } catch (error: any) {
+      return c.json({
+        status: 'error',
+        message: 'API key test failed',
+        apiKeyValid: false,
+        error: error.response?.data || error.message
+      }, 401);
+    }
   });
   
   // Main MCP endpoint supporting both GET and POST

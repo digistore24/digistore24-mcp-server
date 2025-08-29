@@ -1,13 +1,31 @@
 {
-  "name": "digistore24-api",
-  "version": "1.0",
-  "description": "MCP Server generated from OpenAPI spec for digistore24-api",
-  "private": true,
+  "name": "digistore24-mcp-server",
+  "version": "1.0.0",
+  "description": "Model Context Protocol (MCP) server for Digistore24 API - enables AI assistants to interact with Digistore24 e-commerce platform",
+  "keywords": ["mcp", "digistore24", "ai", "ecommerce", "api", "model-context-protocol"],
+  "author": "Digistore24",
+  "homepage": "https://github.com/digistore24/digistore24-mcp-server",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/digistore24/digistore24-mcp-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/digistore24/digistore24-mcp-server/issues"
+  },
+  "license": "MIT",
+  "private": false,
   "type": "module",
   "main": "build/index.js",
+  "bin": {
+    "digistore24-mcp": "build/index.js"
+  },
   "files": [
     "build",
-    "src"
+    "src",
+    "docs",
+    "public",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "start": "node build/index.js",
