@@ -20,9 +20,9 @@ digistore24-mcp-server/
 │   └── streamable-http.d.ts
 │
 ├── docs/                       # Documentation
-│   ├── CUSTOMER_SETUP_GUIDE.md     # How customers connect their AI assistants
+│   ├── CUSTOMER_SETUP_GUIDE.md     # Customer-facing setup instructions (primary)
 │   ├── CURSOR_SETUP_GUIDE.md       # Specific instructions for Cursor users
-│   ├── HOSTING_DEPLOYMENT_GUIDE.md # How to deploy and host the server
+│   ├── HOSTING_DEPLOYMENT_GUIDE.md # Internal deployment guide
 │   └── ARCHITECTURE_SUMMARY.md     # Technical overview and design decisions
 │
 └── public/                     # Static files (optional web interface)
@@ -38,9 +38,9 @@ digistore24-mcp-server/
 
 ### Documentation  
 - **`README.md`** - Complete project overview and quick start
-- **`docs/CUSTOMER_SETUP_GUIDE.md`** - Customer-facing setup instructions
+- **`docs/CUSTOMER_SETUP_GUIDE.md`** - **Customer-facing setup instructions** (primary guide)
 - **`docs/CURSOR_SETUP_GUIDE.md`** - Cursor-specific configuration
-- **`docs/HOSTING_DEPLOYMENT_GUIDE.md`** - Production deployment guide
+- **`docs/HOSTING_DEPLOYMENT_GUIDE.md`** - Internal deployment guide (for Digistore24 team)
 - **`docs/ARCHITECTURE_SUMMARY.md`** - Technical architecture overview
 
 ### Configuration
@@ -58,8 +58,8 @@ digistore24-mcp-server/
 ## Documentation Hierarchy
 
 1. **README.md** - Start here for overview
-2. **Customer Guides** - For end users setting up AI assistants
-3. **Technical Guides** - For developers and deployment
+2. **Customer Guides** - **Primary focus** - For end users setting up AI assistants
+3. **Technical Guides** - For internal team deployment and maintenance
 4. **Architecture** - For understanding the technical design
 
 ## Ready for Production
@@ -67,6 +67,7 @@ digistore24-mcp-server/
 - ✅ Clean code structure
 - ✅ Comprehensive documentation  
 - ✅ Security best practices
-- ✅ Customer-ready setup guides
-- ✅ Production deployment instructions
+- ✅ **Customer-ready setup guides** (primary focus)
+- ✅ Production deployment instructions (internal use)
 - ✅ MIT license for distribution
+- ✅ **Hosted service approach** (no self-hosting for customers)

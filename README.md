@@ -15,10 +15,9 @@ A Model Context Protocol (MCP) server that provides AI assistants with access to
 - [Quick Start](#quick-start)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Hosting for Customers](#hosting-for-customers)
+- [Hosted Service](#hosted-service)
 - [API Reference](#api-reference)
 - [Configuration](#configuration)
-- [Deployment](#deployment)
 - [Security](#security)
 - [Support](#support)
 
@@ -42,9 +41,9 @@ If you're a Digistore24 customer wanting to use this with your AI assistant:
 }
 ```
 
-**📖 See [docs/HOSTING_DEPLOYMENT_GUIDE.md](./docs/HOSTING_DEPLOYMENT_GUIDE.md) for detailed deployment instructions**
+**📖 See [docs/CUSTOMER_SETUP_GUIDE.md](./docs/CUSTOMER_SETUP_GUIDE.md) for detailed setup instructions**
 
-### For Developers (Local Development)
+### For Developers (Local Development - Internal Use Only)
 
 ```bash
 # Clone and install
@@ -66,7 +65,7 @@ npm start -- --http
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 20+ 
 - npm or yarn
 - Digistore24 API key
 
@@ -141,9 +140,9 @@ Once connected, you have access to 60+ Digistore24 API endpoints:
 
 **📖 See the full API documentation in your MCP client after connecting**
 
-## 🌐 Hosting for Customers
+## 🌐 Hosted Service
 
-This server is designed to be hosted as a public service, allowing your customers to connect their AI assistants to Digistore24 using their own API keys.
+This server is hosted by Digistore24 as a public service, allowing customers to connect their AI assistants to Digistore24 using their own API keys.
 
 ### Architecture
 
@@ -151,6 +150,7 @@ This server is designed to be hosted as a public service, allowing your customer
 - **Per-Request Auth**: API key required and validated on every request
 - **Session Isolation**: Each customer connection is completely isolated
 - **Maximum Security**: API keys never persist in server memory
+- **Hosted Only**: Customers use the service at mcp.digistore24.com
 
 ## 📚 API Reference
 
@@ -275,7 +275,7 @@ digistore24-mcp-server/
 npm run build
 ```
 
-### Testing
+### Testing (Internal Development Only)
 
 ```bash
 # Test health endpoint
@@ -293,9 +293,9 @@ curl -X POST http://localhost:3000/mcp \
 
 ## 📖 Documentation
 
-- **[Customer Setup Guide](./docs/CUSTOMER_SETUP_GUIDE.md)** - How customers connect their AI assistants
+- **[Customer Setup Guide](./docs/CUSTOMER_SETUP_GUIDE.md)** - **Start here!** How customers connect their AI assistants
 - **[Cursor Setup Guide](./docs/CURSOR_SETUP_GUIDE.md)** - Specific instructions for Cursor users  
-- **[Hosting Guide](./docs/HOSTING_DEPLOYMENT_GUIDE.md)** - How to deploy and host the server
+- **[Hosting Guide](./docs/HOSTING_DEPLOYMENT_GUIDE.md)** - Internal deployment guide (for Digistore24 team)
 - **[Architecture Summary](./docs/ARCHITECTURE_SUMMARY.md)** - Technical overview and design decisions  
 
 ## 🤝 Support
