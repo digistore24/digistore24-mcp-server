@@ -32,8 +32,11 @@ jest.mock('uuid', () => ({
 }));
 
 // Mock global timers
-(global as any).setInterval = jest.fn();
-(global as any).setTimeout = jest.fn();
+const mockSetInterval = jest.fn();
+const mockSetTimeout = jest.fn();
+
+(global as any).setInterval = mockSetInterval;
+(global as any).setTimeout = mockSetTimeout;
 
 // Import after mocking
 import { MCPStreamableHttpServer } from '../streamable-http.js';
@@ -54,12 +57,16 @@ describe('MCPStreamableHttpServer', () => {
 
   afterEach(() => {
     jest.clearAllTimers();
+    // Cleanup the handler to clear all intervals and timeouts
+    if (mcpHandler) {
+      mcpHandler.cleanup();
+    }
   });
 
   describe('Constructor', () => {
     it('should initialize with server and setup cleanup interval', () => {
       expect(mcpHandler).toBeDefined();
-      expect(setInterval).toHaveBeenCalledWith(
+      expect(mockSetInterval).toHaveBeenCalledWith(
         expect.any(Function),
         5 * 60 * 1000 // 5 minutes
       );

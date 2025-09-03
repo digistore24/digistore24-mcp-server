@@ -31,12 +31,13 @@ export class MCPStreamableHttpServer {
   transports: {[sessionId: string]: StreamableHTTPServerTransport} = {};
   private transportTimeouts: {[sessionId: string]: NodeJS.Timeout} = {};
   private readonly SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+  private cleanupInterval: NodeJS.Timeout | null = null;
   
   constructor(server: Server) {
     this.server = server;
     
     // Cleanup expired sessions every 5 minutes
-    setInterval(() => this.cleanupExpiredSessions(), 5 * 60 * 1000);
+    this.cleanupInterval = setInterval(() => this.cleanupExpiredSessions(), 5 * 60 * 1000);
   }
   
   /**
@@ -232,6 +233,35 @@ export class MCPStreamableHttpServer {
         delete this.transportTimeouts[sessionId];
       }
     }
+  }
+  
+  /**
+   * Cleanup method for testing - clears all intervals and timeouts
+   */
+  public cleanup(): void {
+    // Clear the cleanup interval
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+    }
+    
+    // Clear all transport timeouts
+    Object.values(this.transportTimeouts).forEach(timeout => {
+      if (timeout) {
+        clearTimeout(timeout);
+      }
+    });
+    
+    // Clear all transports
+    Object.values(this.transports).forEach(transport => {
+      try {
+        transport.close();
+      } catch (error) {
+        // Ignore errors during cleanup
+      }
+    });
+    
+    this.transports = {};
+    this.transportTimeouts = {};
   }
 }
 
