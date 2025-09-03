@@ -22,39 +22,59 @@ jest.mock('@modelcontextprotocol/sdk/server/streamableHttp.js', () => ({
 
 jest.mock('@modelcontextprotocol/sdk/types.js', () => ({
   InitializeRequestSchema: {
-    safeParse: (data: any) => {
+    safeParse: (data: unknown) => {
       if (!data) return { success: false };
-      if (data.method === 'initialize') return { success: true };
-      if (data.jsonrpc && data.method === 'initialize') return { success: true };
+      if (data && typeof data === 'object' && 'method' in data && data.method === 'initialize') return { success: true };
+      if (data && typeof data === 'object' && 'jsonrpc' in data && 'method' in data && data.jsonrpc && data.method === 'initialize') return { success: true };
       return { success: false };
     },
   },
 }));
 
+interface MockEventEmitter {
+  on: (event: string, cb: (...args: unknown[]) => void) => void;
+  emit: (event: string, ...args: unknown[]) => void;
+}
+
+interface MockRequest {
+  url: string;
+  method: string;
+  headers: Map<string, string>;
+}
+
 jest.mock('fetch-to-node', () => ({
   toReqRes: jest.fn(() => {
-    const listeners: Record<string, Array<(...args: any[]) => void>> = {};
-    const res = {
-      on: (event: string, cb: (...args: any[]) => void) => {
+    const listeners: Record<string, Array<(...args: unknown[]) => void>> = {};
+    const res: MockEventEmitter = {
+      on: (event: string, cb: (...args: unknown[]) => void) => {
         listeners[event] = listeners[event] || [];
         listeners[event].push(cb);
       },
-      emit: (event: string, ...args: any[]) => {
+      emit: (event: string, ...args: unknown[]) => {
         (listeners[event] || []).forEach((cb) => cb(...args));
       },
-    } as any;
-    const req = {
+    };
+    const req: MockRequest = {
       url: 'http://localhost:3000/mcp',
       method: 'POST',
       headers: new Map(),
-    } as any;
+    };
     return { req, res };
   }),
   toFetchResponse: jest.fn(() => new Response(null, { status: 200 })),
 }));
 
+interface ServerConfig {
+  port?: number;
+  [key: string]: unknown;
+}
+
+interface ServerCallback {
+  (info: { port: number }): void;
+}
+
 jest.mock('@hono/node-server', () => ({ 
-  serve: jest.fn((config: any, callback?: any) => {
+  serve: jest.fn((config: ServerConfig, callback?: ServerCallback) => {
     if (callback) {
       // Use setTimeout to simulate async server start without actually binding to port
       setTimeout(() => callback({ port: config.port || 3000 }), 0);
@@ -95,15 +115,15 @@ jest.mock('uuid', () => ({
 }));
 
 // Mock setInterval/setTimeout globally
-const mockSetInterval = jest.fn(() => 1 as any);
-const mockSetTimeout = jest.fn(() => 1 as any);
+const mockSetInterval = jest.fn(() => 1 as unknown as NodeJS.Timeout);
+const mockSetTimeout = jest.fn(() => 1 as unknown as NodeJS.Timeout);
 const mockClearInterval = jest.fn();
 const mockClearTimeout = jest.fn();
 
-global.setInterval = mockSetInterval as any;
-global.setTimeout = mockSetTimeout as any;
-global.clearInterval = mockClearInterval as any;
-global.clearTimeout = mockClearTimeout as any;
+global.setInterval = mockSetInterval as unknown as typeof setInterval;
+global.setTimeout = mockSetTimeout as unknown as typeof setTimeout;
+global.clearInterval = mockClearInterval as unknown as typeof clearInterval;
+global.clearTimeout = mockClearTimeout as unknown as typeof clearTimeout;
 
 // Ensure timers are fake to avoid hanging
 beforeEach(() => {
@@ -123,7 +143,21 @@ afterEach(() => {
 // Import after mocking
 import { MCPStreamableHttpServer, setupStreamableHttpServer } from '../streamable-http.js';
 
-function createMockContext(headers: Record<string, string | undefined>, body?: any) {
+interface MockContext {
+  req: {
+    header: (name: string) => string | undefined;
+    json: jest.MockedFunction<() => Promise<unknown>>;
+    raw: {
+      url: string;
+      method: string;
+      headers: Map<string, string>;
+    };
+  };
+  text: jest.MockedFunction<(msg: string, status: number, hdrs?: Record<string, string>) => { msg: string; status: number; hdrs?: Record<string, string> }>;
+  json: jest.MockedFunction<(payload: unknown, status?: number) => { payload: unknown; status: number }>;
+}
+
+function createMockContext(headers: Record<string, string | undefined>, body?: unknown): MockContext {
   return {
     req: {
       header: (name: string) => headers[name.toLowerCase()],
@@ -136,18 +170,21 @@ function createMockContext(headers: Record<string, string | undefined>, body?: a
     },
     text: jest.fn((msg: string, status: number, hdrs?: Record<string, string>) => ({ msg, status, hdrs })),
     json: jest.fn((payload: unknown, status = 200) => ({ payload, status })),
-  } as any;
+  };
 }
 
 describe('streamable-http.ts', () => {
   describe('MCPStreamableHttpServer', () => {
-    let server: any;
+    let server: { connect: jest.MockedFunction<() => Promise<void>> };
     let handler: MCPStreamableHttpServer;
 
     beforeEach(() => {
-      const { Server } = jest.requireMock('@modelcontextprotocol/sdk/server/index.js');
+      const { Server } = jest.requireMock('@modelcontextprotocol/sdk/server/index.js') as {
+        Server: new () => { connect: jest.MockedFunction<() => Promise<void>> };
+      };
       server = new Server();
-      handler = new MCPStreamableHttpServer(server);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      handler = new MCPStreamableHttpServer(server as any);
     });
 
     afterEach(() => {
@@ -196,7 +233,8 @@ describe('streamable-http.ts', () => {
 
       it('should handle internal errors with 500 status', async () => {
         const c = createMockContext({ authorization: 'Bearer test-key' }, { method: 'initialize' });
-        (c.req.json as jest.Mock).mockRejectedValueOnce(new Error('Test error'));
+        const mockJson = jest.fn<() => Promise<unknown>>().mockRejectedValueOnce(new Error('Test error'));
+        c.req.json = mockJson;
         const res = await handler.handlePostRequest(c);
         expect(res.status).toBe(500);
       });
@@ -204,8 +242,9 @@ describe('streamable-http.ts', () => {
 
     describe('createErrorResponse', () => {
       it('should create proper JSON-RPC error response', () => {
-        const handler_any = handler as any;
-        const errorResponse = handler_any.createErrorResponse('Test error message');
+        const errorResponse = (handler as unknown as {
+          createErrorResponse: (message: string) => { jsonrpc: string; error: { code: number; message: string }; id: string };
+        }).createErrorResponse('Test error message');
         
         expect(errorResponse.jsonrpc).toBe('2.0');
         expect(errorResponse.error.code).toBe(-32000);
@@ -214,9 +253,11 @@ describe('streamable-http.ts', () => {
       });
 
       it('should generate unique IDs for each error response', () => {
-        const handler_any = handler as any;
-        const error1 = handler_any.createErrorResponse('Error 1');
-        const error2 = handler_any.createErrorResponse('Error 2');
+        const handlerWithPrivate = handler as unknown as {
+          createErrorResponse: (message: string) => { jsonrpc: string; error: { code: number; message: string }; id: string };
+        };
+        const error1 = handlerWithPrivate.createErrorResponse('Error 1');
+        const error2 = handlerWithPrivate.createErrorResponse('Error 2');
         
         expect(error1.id).not.toBe(error2.id);
       });
@@ -224,7 +265,9 @@ describe('streamable-http.ts', () => {
 
     describe('isInitializeRequest', () => {
       it('should detect initialize requests correctly', () => {
-        const handler_any = handler as any;
+        const handlerWithPrivate = handler as unknown as {
+          isInitializeRequest: (body: unknown) => boolean;
+        };
         
         // Test the logic structure rather than the exact implementation
         // since mocking InitializeRequestSchema is complex
@@ -232,56 +275,56 @@ describe('streamable-http.ts', () => {
         const otherBody = { method: 'other' };
         
         // The method should return boolean values
-        const result1 = handler_any.isInitializeRequest(initializeBody);
-        const result2 = handler_any.isInitializeRequest(otherBody);
+        const result1 = handlerWithPrivate.isInitializeRequest(initializeBody);
+        const result2 = handlerWithPrivate.isInitializeRequest(otherBody);
         
         expect(typeof result1).toBe('boolean');
         expect(typeof result2).toBe('boolean');
       });
 
       it('should handle array requests', () => {
-        const handler_any = handler as any;
+        const handlerWithPrivate = handler as unknown as {
+          isInitializeRequest: (body: unknown) => boolean;
+        };
         const arrayBody = [
           { method: 'other' },
           { method: 'initialize', jsonrpc: '2.0' }
         ];
         
-        const result = handler_any.isInitializeRequest(arrayBody);
+        const result = handlerWithPrivate.isInitializeRequest(arrayBody);
         expect(typeof result).toBe('boolean');
       });
 
       it('should handle null/undefined requests', () => {
-        const handler_any = handler as any;
+        const handlerWithPrivate = handler as unknown as {
+          isInitializeRequest: (body: unknown) => boolean;
+        };
         
-        expect(handler_any.isInitializeRequest(null)).toBe(false);
-        expect(handler_any.isInitializeRequest(undefined)).toBe(false);
+        expect(handlerWithPrivate.isInitializeRequest(null)).toBe(false);
+        expect(handlerWithPrivate.isInitializeRequest(undefined)).toBe(false);
       });
     });
 
     describe('Memory leak protection', () => {
       it('should cleanup expired sessions', () => {
         const mockClose = jest.fn();
-        handler.transports['old-session'] = { close: mockClose } as any;
-        
-        // Manually call the cleanup method to test structure
-        const handler_any = handler as any;
+        (handler.transports as Record<string, unknown>)['old-session'] = { close: mockClose };
         
         // Test that the method exists and can be called
-        expect(typeof handler_any.cleanupExpiredSessions).toBe('function');
+        expect(typeof (handler as unknown as { cleanupExpiredSessions: () => void }).cleanupExpiredSessions).toBe('function');
         
         // Call cleanup method (may not clean up due to mock complexity, but tests structure)
-        expect(() => handler_any.cleanupExpiredSessions()).not.toThrow();
+        expect(() => (handler as unknown as { cleanupExpiredSessions: () => void }).cleanupExpiredSessions()).not.toThrow();
       });
 
       it('should not cleanup non-expired sessions', () => {
         const mockClose = jest.fn();
-        handler.transports['recent-session'] = { close: mockClose } as any;
-        handler['transportTimeouts']['recent-session'] = {
+        (handler.transports as Record<string, unknown>)['recent-session'] = { close: mockClose };
+        ((handler as unknown as { transportTimeouts: Record<string, { _idleStart: number }> }).transportTimeouts)['recent-session'] = {
           _idleStart: Date.now() - (25 * 60 * 1000) // 25 minutes ago (not expired)
-        } as any;
+        };
 
-        const handler_any = handler as any;
-        handler_any.cleanupExpiredSessions();
+        (handler as unknown as { cleanupExpiredSessions: () => void }).cleanupExpiredSessions();
 
         expect(mockClose).not.toHaveBeenCalled();
         expect(handler.transports['recent-session']).toBeDefined();
@@ -289,24 +332,22 @@ describe('streamable-http.ts', () => {
 
       it('should remove transport and cleanup resources', () => {
         const mockClose = jest.fn();
-        handler.transports['test-session'] = { close: mockClose } as any;
+        (handler.transports as Record<string, unknown>)['test-session'] = { close: mockClose };
         
         // Use mock timeout object
         const mockTimeoutObj = { ref: jest.fn(), unref: jest.fn() };
-        handler['transportTimeouts']['test-session'] = mockTimeoutObj as any;
+        ((handler as unknown as { transportTimeouts: Record<string, unknown> }).transportTimeouts)['test-session'] = mockTimeoutObj;
 
-        const handler_any = handler as any;
-        handler_any.removeTransport('test-session');
+        (handler as unknown as { removeTransport: (sessionId: string) => void }).removeTransport('test-session');
 
         expect(mockClose).toHaveBeenCalled();
         expect(handler.transports['test-session']).toBeUndefined();
-        expect(handler['transportTimeouts']['test-session']).toBeUndefined();
+        expect(((handler as unknown as { transportTimeouts: Record<string, unknown> }).transportTimeouts)['test-session']).toBeUndefined();
       });
 
       it('should handle removing non-existent transport gracefully', () => {
-        const handler_any = handler as any;
         expect(() => {
-          handler_any.removeTransport('non-existent-session');
+          (handler as unknown as { removeTransport: (sessionId: string) => void }).removeTransport('non-existent-session');
         }).not.toThrow();
       });
     });
@@ -316,21 +357,22 @@ describe('streamable-http.ts', () => {
         const mockClose1 = jest.fn();
         const mockClose2 = jest.fn();
         
-        handler.transports['session1'] = { close: mockClose1 } as any;
-        handler.transports['session2'] = { close: mockClose2 } as any;
+        (handler.transports as Record<string, unknown>)['session1'] = { close: mockClose1 };
+        (handler.transports as Record<string, unknown>)['session2'] = { close: mockClose2 };
         
         // Use mock timeout objects
         const mockTimeout1 = { ref: jest.fn(), unref: jest.fn() };
         const mockTimeout2 = { ref: jest.fn(), unref: jest.fn() };
-        handler['transportTimeouts']['session1'] = mockTimeout1 as any;
-        handler['transportTimeouts']['session2'] = mockTimeout2 as any;
+        const transportTimeouts = (handler as unknown as { transportTimeouts: Record<string, unknown> }).transportTimeouts;
+        transportTimeouts['session1'] = mockTimeout1;
+        transportTimeouts['session2'] = mockTimeout2;
 
         handler.cleanup();
 
         expect(mockClose1).toHaveBeenCalled();
         expect(mockClose2).toHaveBeenCalled();
         expect(handler.transports).toEqual({});
-        expect(handler['transportTimeouts']).toEqual({});
+        expect(transportTimeouts).toEqual({});
       });
 
       it('should handle cleanup errors gracefully', () => {
@@ -338,18 +380,19 @@ describe('streamable-http.ts', () => {
           throw new Error('Cleanup failed');
         });
         
-        handler.transports['error-session'] = { close: mockCloseWithError } as any;
+        (handler.transports as Record<string, unknown>)['error-session'] = { close: mockCloseWithError };
         
         // Use mock timeout object
         const mockTimeout = { ref: jest.fn(), unref: jest.fn() };
-        handler['transportTimeouts']['error-session'] = mockTimeout as any;
+        const transportTimeouts = (handler as unknown as { transportTimeouts: Record<string, unknown> }).transportTimeouts;
+        transportTimeouts['error-session'] = mockTimeout;
 
         expect(() => {
           handler.cleanup();
         }).not.toThrow();
         
         expect(handler.transports).toEqual({});
-        expect(handler['transportTimeouts']).toEqual({});
+        expect(transportTimeouts).toEqual({});
       });
     });
   });
@@ -370,10 +413,7 @@ describe('streamable-http.ts', () => {
       expect(true).toBe(true);
     });
 
-    it('should be designed to serve static files', () => {
-      // Test that static file serving is properly structured
-      expect(true).toBe(true);
-    });
+
 
     it('should be designed to handle health check endpoint', () => {
       // Test that health check endpoint is properly structured

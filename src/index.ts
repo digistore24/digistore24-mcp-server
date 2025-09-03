@@ -26,7 +26,28 @@ import axios, { type AxiosRequestConfig, type AxiosError } from 'axios';
 /**
  * Type definition for JSON objects
  */
-type JsonObject = Record<string, any>;
+type JsonObject = Record<string, unknown>;
+
+/**
+ * Interface for security requirement
+ */
+interface SecurityRequirement {
+    [schemeName: string]: string[];
+}
+
+/**
+ * Interface for JSON Schema - flexible to match actual OpenAPI schema structure
+ */
+interface JsonSchema {
+    [key: string]: unknown;
+}
+
+/**
+ * Interface for OAuth2 security scheme - flexible to match actual structure
+ */
+interface OAuth2Scheme {
+    [key: string]: unknown;
+}
 
 /**
  * Interface for MCP Tool Definition
@@ -34,12 +55,12 @@ type JsonObject = Record<string, any>;
 interface McpToolDefinition {
     name: string;
     description: string;
-    inputSchema: any;
+    inputSchema: JsonSchema;
     method: string;
     pathTemplate: string;
     executionParameters: { name: string, in: string }[];
     requestBodyContentType?: string;
-    securityRequirements: any[];
+    securityRequirements: SecurityRequirement[];
 }
 
 /**
@@ -1360,7 +1381,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   const toolsForClient: Tool[] = Array.from(toolDefinitionMap.values()).map(def => ({
     name: def.name,
     description: def.description,
-    inputSchema: def.inputSchema
+    inputSchema: {
+      type: "object",
+      ...def.inputSchema
+    } as Tool['inputSchema']
   }));
   return { tools: toolsForClient };
 });
@@ -1400,7 +1424,7 @@ declare global {
  * @param scheme OAuth2 security scheme
  * @returns Acquired token or null if unable to acquire
  */
-async function acquireOAuth2Token(schemeName: string, scheme: any): Promise<string | null | undefined> {
+async function acquireOAuth2Token(schemeName: string, scheme: Record<string, unknown>): Promise<string | null | undefined> {
     try {
         // Check if we have the necessary credentials
         const clientId = process.env[`OAUTH_CLIENT_ID_SCHEMENAME`];
@@ -1429,11 +1453,15 @@ async function acquireOAuth2Token(schemeName: string, scheme: any): Promise<stri
         
         // Determine token URL based on flow type
         let tokenUrl = '';
-        if (scheme.flows?.clientCredentials?.tokenUrl) {
-            tokenUrl = scheme.flows.clientCredentials.tokenUrl;
+        const flows = scheme.flows as Record<string, unknown> | undefined;
+        const clientCredentials = flows?.clientCredentials as Record<string, unknown> | undefined;
+        const password = flows?.password as Record<string, unknown> | undefined;
+        
+        if (clientCredentials?.tokenUrl && typeof clientCredentials.tokenUrl === 'string') {
+            tokenUrl = clientCredentials.tokenUrl;
             console.error(`Using client credentials flow for '${schemeName}'`);
-        } else if (scheme.flows?.password?.tokenUrl) {
-            tokenUrl = scheme.flows.password.tokenUrl;
+        } else if (password?.tokenUrl && typeof password.tokenUrl === 'string') {
+            tokenUrl = password.tokenUrl;
             console.error(`Using password flow for '${schemeName}'`);
         } else {
             console.error(`No supported OAuth2 flow found for '${schemeName}'`);
@@ -1500,7 +1528,7 @@ async function executeApiTool(
     toolName: string,
     definition: McpToolDefinition,
     toolArgs: JsonObject,
-    allSecuritySchemes: Record<string, any>
+    allSecuritySchemes: Record<string, Record<string, unknown>>
 ): Promise<CallToolResult> {
   try {
     // Validate arguments against the input schema
@@ -1521,9 +1549,9 @@ async function executeApiTool(
 
     // Prepare URL, query parameters, headers, and request body
     let urlPath = definition.pathTemplate;
-    const queryParams: Record<string, any> = {};
+    const queryParams: Record<string, unknown> = {};
     const headers: Record<string, string> = { 'Accept': 'application/json' };
-    let requestBodyData: any = undefined;
+    let requestBodyData: unknown = undefined;
 
     // Apply parameters to the URL path, query, or headers
     definition.executionParameters.forEach((param) => {
@@ -1535,7 +1563,7 @@ async function executeApiTool(
             else if (param.in === 'query') {
                 // Handle nested objects for query parameters (like data object)
                 if (typeof value === 'object') {
-                    Object.entries(value as Record<string, any>).forEach(([nestedKey, nestedValue]) => {
+                    Object.entries(value as Record<string, unknown>).forEach(([nestedKey, nestedValue]) => {
                         if (nestedValue !== undefined && nestedValue !== null) {
                             queryParams[`${param.name}[${nestedKey}]`] = nestedValue;
                         }
@@ -1584,10 +1612,10 @@ async function executeApiTool(
             
             // HTTP security (basic, bearer)
             if (scheme.type === 'http') {
-                if (scheme.scheme?.toLowerCase() === 'bearer') {
+                if (typeof scheme.scheme === 'string' && scheme.scheme.toLowerCase() === 'bearer') {
                     return !!process.env[`BEARER_TOKEN_${schemeName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()}`];
                 }
-                else if (scheme.scheme?.toLowerCase() === 'basic') {
+                else if (typeof scheme.scheme === 'string' && scheme.scheme.toLowerCase() === 'basic') {
                     return !!process.env[`BASIC_USERNAME_${schemeName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()}`] && 
                            !!process.env[`BASIC_PASSWORD_${schemeName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()}`];
                 }
@@ -1604,7 +1632,8 @@ async function executeApiTool(
                 if (process.env[`OAUTH_CLIENT_ID_${schemeName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()}`] &&
                     process.env[`OAUTH_CLIENT_SECRET_${schemeName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()}`]) {
                     // Verify we have a supported flow
-                    if (scheme.flows?.clientCredentials || scheme.flows?.password) {
+                    const flows = scheme.flows as Record<string, unknown> | undefined;
+                    if (flows?.clientCredentials || flows?.password) {
                         return true;
                     }
                 }
@@ -1632,15 +1661,15 @@ async function executeApiTool(
             if (scheme?.type === 'apiKey') {
                 const apiKey = process.env[`API_KEY_${schemeName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()}`];
                 if (apiKey) {
-                    if (scheme.in === 'header') {
+                    if (scheme.in === 'header' && typeof scheme.name === 'string') {
                         headers[scheme.name.toLowerCase()] = apiKey;
                         console.error(`Applied API key '${schemeName}' in header '${scheme.name}'`);
                     }
-                    else if (scheme.in === 'query') {
+                    else if (scheme.in === 'query' && typeof scheme.name === 'string') {
                         queryParams[scheme.name] = apiKey;
                         console.error(`Applied API key '${schemeName}' in query parameter '${scheme.name}'`);
                     }
-                    else if (scheme.in === 'cookie') {
+                    else if (scheme.in === 'cookie' && typeof scheme.name === 'string') {
                         // Add the cookie, preserving other cookies if they exist
                         headers['cookie'] = `${scheme.name}=${apiKey}${headers['cookie'] ? `; ${headers['cookie']}` : ''}`;
                         console.error(`Applied API key '${schemeName}' in cookie '${scheme.name}'`);
@@ -1649,14 +1678,14 @@ async function executeApiTool(
             } 
             // HTTP security (Bearer or Basic)
             else if (scheme?.type === 'http') {
-                if (scheme.scheme?.toLowerCase() === 'bearer') {
+                if (typeof scheme.scheme === 'string' && scheme.scheme.toLowerCase() === 'bearer') {
                     const token = process.env[`BEARER_TOKEN_${schemeName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()}`];
                     if (token) {
                         headers['authorization'] = `Bearer ${token}`;
                         console.error(`Applied Bearer token for '${schemeName}'`);
                     }
                 } 
-                else if (scheme.scheme?.toLowerCase() === 'basic') {
+                else if (typeof scheme.scheme === 'string' && scheme.scheme.toLowerCase() === 'basic') {
                     const username = process.env[`BASIC_USERNAME_${schemeName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()}`];
                     const password = process.env[`BASIC_PASSWORD_${schemeName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()}`];
                     if (username && password) {
@@ -1671,7 +1700,8 @@ async function executeApiTool(
                 let token = process.env[`OAUTH_TOKEN_${schemeName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()}`];
                 
                 // If no token but we have client credentials, try to acquire a token
-                if (!token && (scheme.flows?.clientCredentials || scheme.flows?.password)) {
+                const flows = scheme.flows as Record<string, unknown> | undefined;
+                if (!token && (flows?.clientCredentials || flows?.password)) {
                     console.error(`Attempting to acquire OAuth token for '${schemeName}'`);
                     token = (await acquireOAuth2Token(schemeName, scheme)) ?? '';
                 }
@@ -1730,7 +1760,7 @@ async function executeApiTool(
     const apiUrl = `${API_BASE_URL}/${methodName}`;
     
     // Prepare request data
-    let requestData: any;
+    let requestData: unknown;
     let requestContentType: string;
     
     // All Digistore24 API calls are POST with form encoding, regardless of method definition
@@ -1750,7 +1780,7 @@ async function executeApiTool(
           // Only add if it wasn't already added as a query parameter
           if (typeof value === 'object') {
             // Handle nested objects
-            Object.entries(value as Record<string, any>).forEach(([nestedKey, nestedValue]) => {
+            Object.entries(value as Record<string, unknown>).forEach(([nestedKey, nestedValue]) => {
               if (nestedValue !== undefined && nestedValue !== null) {
                 formData.append(`${key}[${nestedKey}]`, String(nestedValue));
               }
@@ -1945,7 +1975,7 @@ function formatApiError(error: AxiosError): string {
  * @param toolName Tool name for error reporting
  * @returns Zod schema
  */
-function getZodSchemaFromJsonSchema(jsonSchema: any, toolName: string): z.ZodTypeAny {
+function getZodSchemaFromJsonSchema(jsonSchema: JsonSchema, toolName: string): z.ZodTypeAny {
     if (typeof jsonSchema !== 'object' || jsonSchema === null) { 
         return z.object({}).passthrough(); 
     }
@@ -1956,7 +1986,7 @@ function getZodSchemaFromJsonSchema(jsonSchema: any, toolName: string): z.ZodTyp
             throw new Error('Eval did not produce a valid Zod schema.'); 
         }
         return zodSchema as z.ZodTypeAny;
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error(`Failed to generate/evaluate Zod schema for '${toolName}':`, err);
         return z.object({}).passthrough();
     }

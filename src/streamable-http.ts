@@ -11,9 +11,7 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { InitializeRequestSchema, JSONRPCError } from "@modelcontextprotocol/sdk/types.js";
 import { toReqRes, toFetchResponse } from 'fetch-to-node';
 import axios from 'axios';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+
 
 // Import server configuration constants
 import { SERVER_NAME, SERVER_VERSION } from './index.js';
@@ -41,7 +39,7 @@ export class MCPStreamableHttpServer {
   }
   
   /**
-   * Handle GET requests (typically used for static files)
+   * Handle GET requests (returns Method Not Allowed)
    */
   async handleGetRequest(c: any) {
     console.error("GET request received - StreamableHTTP transport only supports POST");
@@ -335,55 +333,7 @@ export async function setupStreamableHttpServer(server: Server, port = 3000) {
   app.get("/mcp", (c) => mcpHandler.handleGetRequest(c));
   app.post("/mcp", (c) => mcpHandler.handlePostRequest(c));
   
-  // Static files for the web client (if any)
-  app.get('/*', async (c) => {
-    const filePath = c.req.path === '/' ? '/index.html' : c.req.path;
-    try {
-      // Use Node.js fs to serve static files
-      const __dirname = path.dirname(fileURLToPath(import.meta.url));
-      const publicPath = path.join(__dirname, '..', '..', 'public');
-      const fullPath = path.join(publicPath, filePath);
-      
-      // Simple security check to prevent directory traversal
-      if (!fullPath.startsWith(publicPath)) {
-        return c.text('Forbidden', 403);
-      }
-      
-      try {
-        // Use async file operations to avoid blocking the event loop
-        const stat = await fs.promises.stat(fullPath);
-        if (stat.isFile()) {
-          const content = await fs.promises.readFile(fullPath);
-          
-          // Set content type based on file extension
-          const ext = path.extname(fullPath).toLowerCase();
-          let contentType = 'text/plain';
-          
-          switch (ext) {
-            case '.html': contentType = 'text/html'; break;
-            case '.css': contentType = 'text/css'; break;
-            case '.js': contentType = 'text/javascript'; break;
-            case '.json': contentType = 'application/json'; break;
-            case '.png': contentType = 'image/png'; break;
-            case '.jpg': contentType = 'image/jpeg'; break;
-            case '.svg': contentType = 'image/svg+xml'; break;
-          }
-          
-          return new Response(new Uint8Array(content), {
-            headers: { 'Content-Type': contentType }
-          });
-        }
-      } catch (err) {
-        // File not found or other error
-        return c.text('Not Found', 404);
-      }
-    } catch (err) {
-      console.error('Error serving static file:', err);
-      return c.text('Internal Server Error', 500);
-    }
-    
-    return c.text('Not Found', 404);
-  });
+
   
   // Start the server
   serve({
