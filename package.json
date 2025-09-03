@@ -40,7 +40,7 @@
     "typecheck": "tsc --noEmit",
     "prestart": "npm run build",
     "start:http": "node build/index.js --transport=streamable-http",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest --detectOpenHandles",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --detectOpenHandles --forceExit",
     "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch",
     "test:coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage"
   },

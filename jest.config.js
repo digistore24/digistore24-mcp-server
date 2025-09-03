@@ -18,5 +18,7 @@ export default {
   transformIgnorePatterns: [
     'node_modules/(?!(@modelcontextprotocol|fetch-to-node)/)',
   ],
+  testPathIgnorePatterns: ['/node_modules/', '/build/'],
   testTimeout: 10000,
+  globalTeardown: './jest.teardown.js',
 };
