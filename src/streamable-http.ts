@@ -10,6 +10,10 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { InitializeRequestSchema, JSONRPCError } from "@modelcontextprotocol/sdk/types.js";
 import { toReqRes, toFetchResponse } from 'fetch-to-node';
+import axios from 'axios';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 // Import server configuration constants
 import { SERVER_NAME, SERVER_VERSION } from './index.js';
@@ -21,13 +25,18 @@ const JSON_RPC = "2.0";
 /**
  * StreamableHTTP MCP Server handler
  */
-class MCPStreamableHttpServer {
+export class MCPStreamableHttpServer {
   server: Server;
-  // Store active transports by session ID
+  // Store active transports by session ID with timeout tracking
   transports: {[sessionId: string]: StreamableHTTPServerTransport} = {};
+  private transportTimeouts: {[sessionId: string]: NodeJS.Timeout} = {};
+  private readonly SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
   
   constructor(server: Server) {
     this.server = server;
+    
+    // Cleanup expired sessions every 5 minutes
+    setInterval(() => this.cleanupExpiredSessions(), 5 * 60 * 1000);
   }
   
   /**
@@ -47,12 +56,11 @@ class MCPStreamableHttpServer {
     const sessionId = c.req.header(SESSION_ID_HEADER_NAME);
     console.error(`POST request received ${sessionId ? 'with session ID: ' + sessionId : 'without session ID'}`);
     
-    // Extract API key from Authorization header (preferred) or query parameter (fallback)
+    // Extract API key from Authorization header only
     const authHeader = c.req.header('authorization');
     const bearerApiKey = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
-    const apiKey = c.req.query('api_key'); // Fallback for testing
     
-    const customerApiKey = bearerApiKey || apiKey;
+    const customerApiKey = bearerApiKey;
     
     // Require API key on every request - stateless authentication
     if (!customerApiKey) {
@@ -62,9 +70,7 @@ class MCPStreamableHttpServer {
       );
     }
     
-    // Set API key for this request only
-    process.env.API_KEY_APIKEYAUTH = customerApiKey;
-    console.error(`API key provided ${bearerApiKey ? 'via Authorization header' : 'via query parameter'} for request`);
+    console.error(`API key provided via Authorization header for request`);
     
     try {
       const body = await c.req.json();
@@ -113,10 +119,16 @@ class MCPStreamableHttpServer {
           console.error(`New session established: ${newSessionId}`);
           this.transports[newSessionId] = transport;
           
+          // Set up timeout for this session
+          this.transportTimeouts[newSessionId] = setTimeout(() => {
+            console.error(`Session timeout for ${newSessionId}`);
+            this.removeTransport(newSessionId);
+          }, this.SESSION_TIMEOUT_MS);
+          
           // Set up clean-up for when the transport is closed
           transport.onclose = () => {
             console.error(`Session closed: ${newSessionId}`);
-            delete this.transports[newSessionId];
+            this.removeTransport(newSessionId);
           };
         }
         
@@ -172,6 +184,55 @@ class MCPStreamableHttpServer {
     
     return isInitial(body);
   }
+  
+  /**
+   * Cleanup expired sessions to prevent memory leaks
+   */
+  private cleanupExpiredSessions(): void {
+    const now = Date.now();
+    const expiredSessions: string[] = [];
+    
+    for (const [sessionId, transport] of Object.entries(this.transports)) {
+      if (transport.sessionId && this.transportTimeouts[sessionId]) {
+        // Check if session has expired
+        const timeout = this.transportTimeouts[sessionId];
+        if (timeout && now > (timeout as any)._idleStart + this.SESSION_TIMEOUT_MS) {
+          expiredSessions.push(sessionId);
+        }
+      }
+    }
+    
+    // Remove expired sessions
+    expiredSessions.forEach(sessionId => {
+      this.removeTransport(sessionId);
+    });
+    
+    if (expiredSessions.length > 0) {
+      console.error(`Cleaned up ${expiredSessions.length} expired sessions`);
+    }
+  }
+  
+  /**
+   * Remove transport and cleanup resources
+   */
+  private removeTransport(sessionId: string): void {
+    const transport = this.transports[sessionId];
+    if (transport) {
+      try {
+        transport.close();
+      } catch (error) {
+        console.error(`Error closing transport ${sessionId}:`, error);
+      }
+      
+      delete this.transports[sessionId];
+      
+      // Clear timeout
+      if (this.transportTimeouts[sessionId]) {
+        clearTimeout(this.transportTimeouts[sessionId]);
+        delete this.transportTimeouts[sessionId];
+      }
+    }
+  }
 }
 
 /**
@@ -198,23 +259,21 @@ export async function setupStreamableHttpServer(server: Server, port = 3000) {
   
   // Add an API key test endpoint for customers
   app.get('/test-api-key', async (c) => {
-    const apiKey = c.req.query('api_key');
     const authHeader = c.req.header('authorization');
     const bearerApiKey = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
     
-    const testApiKey = apiKey || bearerApiKey;
+    const testApiKey = bearerApiKey;
     
     if (!testApiKey) {
       return c.json({ 
         error: 'No API key provided',
-        message: 'Please provide your API key as ?api_key=YOUR_KEY or Authorization: Bearer YOUR_KEY header'
+        message: 'Please provide your API key via Authorization: Bearer YOUR_KEY header'
       }, 400);
     }
     
     try {
       // Test the API key by making a simple call to Digistore24
-      const axios = await import('axios');
-      const response = await axios.default.post(
+      const response = await axios.post(
         'https://www.digistore24.com/api/call/ping',
         new URLSearchParams(),
         {
@@ -251,10 +310,6 @@ export async function setupStreamableHttpServer(server: Server, port = 3000) {
     const filePath = c.req.path === '/' ? '/index.html' : c.req.path;
     try {
       // Use Node.js fs to serve static files
-      const fs = await import('fs');
-      const path = await import('path');
-      const { fileURLToPath } = await import('url');
-      
       const __dirname = path.dirname(fileURLToPath(import.meta.url));
       const publicPath = path.join(__dirname, '..', '..', 'public');
       const fullPath = path.join(publicPath, filePath);
@@ -265,9 +320,10 @@ export async function setupStreamableHttpServer(server: Server, port = 3000) {
       }
       
       try {
-        const stat = fs.statSync(fullPath);
+        // Use async file operations to avoid blocking the event loop
+        const stat = await fs.promises.stat(fullPath);
         if (stat.isFile()) {
-          const content = fs.readFileSync(fullPath);
+          const content = await fs.promises.readFile(fullPath);
           
           // Set content type based on file extension
           const ext = path.extname(fullPath).toLowerCase();
@@ -283,7 +339,7 @@ export async function setupStreamableHttpServer(server: Server, port = 3000) {
             case '.svg': contentType = 'image/svg+xml'; break;
           }
           
-          return new Response(content, {
+          return new Response(new Uint8Array(content), {
             headers: { 'Content-Type': contentType }
           });
         }
