@@ -14,8 +14,9 @@ export default {
     ],
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
-  testMatch: ['**/__tests__/**/*.test.ts'],
+  testMatch: ['**/__tests__/**/*.test.{ts,js}'],
   transformIgnorePatterns: [
     'node_modules/(?!(@modelcontextprotocol|fetch-to-node)/)',
   ],
+  testTimeout: 10000,
 };
