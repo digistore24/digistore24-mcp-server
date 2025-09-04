@@ -35,7 +35,7 @@ jobs:
 
   build:
     name: Build Images
-    uses: .github/workflows/workflow-docker-build-push.yml
+    uses: ./.github/workflows/workflow-docker-build-push.yml
     needs: [ prepare ]
     with:
       app_name: ${{ vars.APP_NAME }}
