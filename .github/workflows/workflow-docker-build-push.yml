@@ -1,0 +1,176 @@
+---
+name: docker-build-and-push
+on:
+  workflow_call:
+    outputs:
+      app_name:
+        value: ${{ jobs.build.outputs.app_name }}
+      tags:
+        value: ${{ jobs.build.outputs.tags }}
+      tag:
+        value: ${{ jobs.build.outputs.tag }}
+      image_name:
+        value: ${{ jobs.build.outputs.image_name }}
+      image_label:
+        value: ${{ jobs.build.outputs.image_label }}
+      meta_json:
+        value: ${{ jobs.build.outputs.json }}
+      digest:
+        value: ${{ jobs.build.outputs.digest }}
+    secrets:
+      PHP_COMPOSER_READER_APP_ID:
+        required: false
+      PHP_COMPOSER_READER_APP_KEY:
+        required: false
+    inputs:
+      app_name:
+        type: string
+        required: false
+        description: Name of the app. Will otherwise default to repository name
+      repository:
+        type: string
+        required: true
+        description: OCI repository to push docker images
+      target:
+        type: string
+        required: false
+        description: Dockerfile target to build
+      docker_push:
+        type: boolean
+        required: true
+      tag_config:
+        type: string
+        required: false
+        default: |-
+          type=ref,event=pr,prefix=pr-
+          type=ref,event=branch,suffix=-{{ sha }}-{{ date 'X' }}
+      build_args:
+        type: string
+        required: false
+        default: ""
+      cache_to:
+        type: string
+        required: false
+        default: |
+          type=inline
+      cache_from:
+        type: string
+        required: false
+        default: "${INLINE}"
+      dockerfile:
+        required: false
+        type: string
+        default: "Dockerfile"
+
+permissions:
+  contents: read
+  id-token: write
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      tags: ${{ steps.meta.outputs.tags }}
+      tag: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+      image_name: ${{ steps.prepare.outputs.app_name }}
+      image_label: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+      json: ${{ steps.meta.outputs.json }}
+      digest: ${{ steps.build.outputs.digest }}
+      app_name: ${{ steps.prepare.outputs.app_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Flux CLI
+        uses: fluxcd/flux2/action@v2.6.4
+        with:
+          version: "2.5.1"
+      - name: Setup Kustomize
+        uses: imranismail/setup-kustomize@v2
+      - name: Get Token
+        id: composerToken
+        uses: getsentry/action-github-app-token@v3
+        env:
+          PHP_COMPOSER_READER_APP_ID: ${{ secrets.PHP_COMPOSER_READER_APP_ID }}
+        if: env.PHP_COMPOSER_READER_APP_ID != null
+        with:
+          app_id: ${{ secrets.PHP_COMPOSER_READER_APP_ID }}
+          private_key: ${{ secrets.PHP_COMPOSER_READER_APP_KEY }}
+      - name: Prepare
+        id: prepare
+        shell: bash
+        env:
+          APP_NAME: ${{ inputs.app_name }}
+          REPOSITORY: ${{ inputs.repository }}
+        run: |-
+          echo "app_name=${APP_NAME:-${GITHUB_REPOSITORY##*/}}" >> "$GITHUB_OUTPUT"
+
+          echo "registry=${REPOSITORY%%/*}" >> "$GITHUB_OUTPUT"
+          COMPOSER_AUTH=$(jq -n \
+            --arg token "${{ steps.composerToken.outputs.token }}" \
+            '{"github-oauth":{"github.com":$token} }')
+          echo "composer_auth=$(echo $COMPOSER_AUTH | jq -c -r @json)" >> $GITHUB_OUTPUT
+          echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        env:
+          DOCKER_METADATA_PR_HEAD_SHA: true
+        with:
+          images: ${{ inputs.repository }}/${{ steps.prepare.outputs.app_name }}
+          tags: ${{ inputs.tag_config }}
+          flavor: |
+            latest=false
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: access_token
+          workload_identity_provider: ${{ vars.GCP_OIDC_ID_PROVIDER }}
+          service_account: ${{ vars.GCP_OIDC_SA }}
+      - name: Format tags as cache refs
+        id: cache_refs
+        env:
+          TAGS: ${{ steps.meta.outputs.json }}
+          CACHE_FROM: ${{ inputs.cache_from }}
+        run: |
+          export INLINE="$(echo $TAGS | jq -r '.tags[] | "type=registry,ref=" + . | @text')"
+          # replace ":inline:" in $CACHE_FROM with the inline cache
+          {
+            echo "cache-from<<EOF"
+            echo "$CACHE_FROM" | envsubst
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+      - name: Login to GAR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ steps.prepare.outputs.registry }}
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        if: ${{ contains(format('{0} {1} {2}', inputs.cache_to, steps.cache_refs.outputs.cache-from, steps.meta.outputs.tags), 'ghcr.io') }}
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          provenance: false
+          push: ${{ inputs.docker_push }}
+          context: .
+          file: ${{ inputs.dockerfile }}
+          labels: ${{ steps.meta.outputs.labels }}
+          target: ${{ inputs.target }}
+          tags: |
+            ${{ steps.meta.outputs.tags }}
+          secrets: |
+            COMPOSER_AUTH=${{ steps.prepare.outputs.composer_auth }}
+          build-args: |
+            ${{ inputs.build_args }}
+          cache-from: ${{ steps.cache_refs.outputs.cache-from }}
+          cache-to: ${{ inputs.cache_to }}
