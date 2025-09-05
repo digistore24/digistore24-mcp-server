@@ -4,9 +4,6 @@
  * Generated on: 2025-08-29T08:52:37.404Z
  */
 
-// Load environment variables from .env file
-import dotenv from 'dotenv';
-dotenv.config();
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -1412,111 +1409,6 @@ interface TokenCacheEntry {
 }
 
 /**
- * Declare global __oauthTokenCache property for TypeScript
- */
-declare global {
-    var __oauthTokenCache: Record<string, TokenCacheEntry> | undefined;
-}
-
-/**
- * Acquires an OAuth2 token using client credentials flow
- * 
- * @param schemeName Name of the security scheme
- * @param scheme OAuth2 security scheme
- * @returns Acquired token or null if unable to acquire
- */
-async function acquireOAuth2Token(schemeName: string, scheme: Record<string, unknown>): Promise<string | null | undefined> {
-    try {
-        // Check if we have the necessary credentials
-        const clientId = process.env[`OAUTH_CLIENT_ID_SCHEMENAME`];
-        const clientSecret = process.env[`OAUTH_CLIENT_SECRET_SCHEMENAME`];
-        const scopes = process.env[`OAUTH_SCOPES_SCHEMENAME`];
-        
-        if (!clientId || !clientSecret) {
-            console.error(`Missing client credentials for OAuth2 scheme '${schemeName}'`);
-            return null;
-        }
-        
-        // Initialize token cache if needed
-        if (typeof global.__oauthTokenCache === 'undefined') {
-            global.__oauthTokenCache = {};
-        }
-        
-        // Check if we have a cached token
-        const cacheKey = `${schemeName}_${clientId}`;
-        const cachedToken = global.__oauthTokenCache[cacheKey];
-        const now = Date.now();
-        
-        if (cachedToken && cachedToken.expiresAt > now) {
-            console.error(`Using cached OAuth2 token for '${schemeName}' (expires in ${Math.floor((cachedToken.expiresAt - now) / 1000)} seconds)`);
-            return cachedToken.token;
-        }
-        
-        // Determine token URL based on flow type
-        let tokenUrl = '';
-        const flows = scheme.flows as Record<string, unknown> | undefined;
-        const clientCredentials = flows?.clientCredentials as Record<string, unknown> | undefined;
-        const password = flows?.password as Record<string, unknown> | undefined;
-        
-        if (clientCredentials?.tokenUrl && typeof clientCredentials.tokenUrl === 'string') {
-            tokenUrl = clientCredentials.tokenUrl;
-            console.error(`Using client credentials flow for '${schemeName}'`);
-        } else if (password?.tokenUrl && typeof password.tokenUrl === 'string') {
-            tokenUrl = password.tokenUrl;
-            console.error(`Using password flow for '${schemeName}'`);
-        } else {
-            console.error(`No supported OAuth2 flow found for '${schemeName}'`);
-            return null;
-        }
-        
-        // Prepare the token request
-        let formData = new URLSearchParams();
-        formData.append('grant_type', 'client_credentials');
-        
-        // Add scopes if specified
-        if (scopes) {
-            formData.append('scope', scopes);
-        }
-        
-        console.error(`Requesting OAuth2 token from ${tokenUrl}`);
-        
-        // Make the token request
-        const response = await axios({
-            method: 'POST',
-            url: tokenUrl,
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Authorization': `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`
-            },
-            data: formData.toString()
-        });
-        
-        // Process the response
-        if (response.data?.access_token) {
-            const token = response.data.access_token;
-            const expiresIn = response.data.expires_in || 3600; // Default to 1 hour
-            
-            // Cache the token
-            global.__oauthTokenCache[cacheKey] = {
-                token,
-                expiresAt: now + (expiresIn * 1000) - 60000 // Expire 1 minute early
-            };
-            
-            console.error(`Successfully acquired OAuth2 token for '${schemeName}' (expires in ${expiresIn} seconds)`);
-            return token;
-        } else {
-            console.error(`Failed to acquire OAuth2 token for '${schemeName}': No access_token in response`);
-            return null;
-        }
-    } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error(`Error acquiring OAuth2 token for '${schemeName}':`, errorMessage);
-        return null;
-    }
-}
-
-
-/**
  * Executes an API tool with the provided arguments
  * 
  * @param toolName Name of the tool to execute
@@ -1598,6 +1490,15 @@ async function executeApiTool(
     }
 
 
+    // Always forward request-scoped Digistore24 API key if present
+    try {
+        const ctx = getRequestContext();
+        if (ctx?.apiKey) {
+            headers['X-DS-API-KEY'] = String(ctx.apiKey);
+            console.error('Applied request-scoped X-DS-API-KEY');
+        }
+    } catch {}
+
     // Apply security requirements if available
     // Security requirements use OR between array items and AND within each object
     const appliedSecurity = definition.securityRequirements?.find(req => {
@@ -1608,43 +1509,9 @@ async function executeApiTool(
             
             // API Key security (header, query, cookie)
             if (scheme.type === 'apiKey') {
-                return !!process.env[`API_KEY_${schemeName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()}`];
-            }
-            
-            // HTTP security (basic, bearer)
-            if (scheme.type === 'http') {
-                if (typeof scheme.scheme === 'string' && scheme.scheme.toLowerCase() === 'bearer') {
-                    return !!process.env[`BEARER_TOKEN_${schemeName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()}`];
-                }
-                else if (typeof scheme.scheme === 'string' && scheme.scheme.toLowerCase() === 'basic') {
-                    return !!process.env[`BASIC_USERNAME_${schemeName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()}`] && 
-                           !!process.env[`BASIC_PASSWORD_${schemeName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()}`];
-                }
-            }
-            
-            // OAuth2 security
-            if (scheme.type === 'oauth2') {
-                // Check for pre-existing token
-                if (process.env[`OAUTH_TOKEN_${schemeName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()}`]) {
-                    return true;
-                }
-                
-                // Check for client credentials for auto-acquisition
-                if (process.env[`OAUTH_CLIENT_ID_${schemeName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()}`] &&
-                    process.env[`OAUTH_CLIENT_SECRET_${schemeName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()}`]) {
-                    // Verify we have a supported flow
-                    const flows = scheme.flows as Record<string, unknown> | undefined;
-                    if (flows?.clientCredentials || flows?.password) {
-                        return true;
-                    }
-                }
-                
-                return false;
-            }
-            
-            // OpenID Connect
-            if (scheme.type === 'openIdConnect') {
-                return !!process.env[`OPENID_TOKEN_${schemeName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()}`];
+                const ctx = getRequestContext();
+                const apiKeyFromRequest = ctx?.apiKey || null;
+                return !!apiKeyFromRequest;
             }
             
             return false;
@@ -1662,8 +1529,7 @@ async function executeApiTool(
             if (scheme?.type === 'apiKey') {
                 const ctx = getRequestContext();
                 const apiKeyFromRequest = ctx?.apiKey || null;
-                const envApiKey = process.env[`API_KEY_${schemeName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()}`];
-                const apiKey = apiKeyFromRequest || envApiKey;
+                const apiKey = apiKeyFromRequest;
                 if (apiKey) {
                     if (scheme.in === 'header' && typeof scheme.name === 'string') {
                         // Preserve original header case for DS24
@@ -1680,62 +1546,6 @@ async function executeApiTool(
                     }
                 }
             } 
-            // HTTP security (Bearer or Basic)
-            else if (scheme?.type === 'http') {
-                if (typeof scheme.scheme === 'string' && scheme.scheme.toLowerCase() === 'bearer') {
-                    const token = process.env[`BEARER_TOKEN_${schemeName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()}`];
-                    if (token) {
-                        headers['authorization'] = `Bearer ${token}`;
-                        console.error(`Applied Bearer token for '${schemeName}'`);
-                    }
-                } 
-                else if (typeof scheme.scheme === 'string' && scheme.scheme.toLowerCase() === 'basic') {
-                    const username = process.env[`BASIC_USERNAME_${schemeName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()}`];
-                    const password = process.env[`BASIC_PASSWORD_${schemeName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()}`];
-                    if (username && password) {
-                        headers['authorization'] = `Basic ${Buffer.from(`${username}:${password}`).toString('base64')}`;
-                        console.error(`Applied Basic authentication for '${schemeName}'`);
-                    }
-                }
-            }
-            // OAuth2 security
-            else if (scheme?.type === 'oauth2') {
-                // First try to use a pre-provided token
-                let token = process.env[`OAUTH_TOKEN_${schemeName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()}`];
-                
-                // If no token but we have client credentials, try to acquire a token
-                const flows = scheme.flows as Record<string, unknown> | undefined;
-                if (!token && (flows?.clientCredentials || flows?.password)) {
-                    console.error(`Attempting to acquire OAuth token for '${schemeName}'`);
-                    token = (await acquireOAuth2Token(schemeName, scheme)) ?? '';
-                }
-                
-                // Apply token if available
-                if (token) {
-                    headers['authorization'] = `Bearer ${token}`;
-                    console.error(`Applied OAuth2 token for '${schemeName}'`);
-                    
-                    // List the scopes that were requested, if any
-                    const scopes = scopesArray as string[];
-                    if (scopes && scopes.length > 0) {
-                        console.error(`Requested scopes: ${scopes.join(', ')}`);
-                    }
-                }
-            }
-            // OpenID Connect
-            else if (scheme?.type === 'openIdConnect') {
-                const token = process.env[`OPENID_TOKEN_${schemeName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()}`];
-                if (token) {
-                    headers['authorization'] = `Bearer ${token}`;
-                    console.error(`Applied OpenID Connect token for '${schemeName}'`);
-                    
-                    // List the scopes that were requested, if any
-                    const scopes = scopesArray as string[];
-                    if (scopes && scopes.length > 0) {
-                        console.error(`Requested scopes: ${scopes.join(', ')}`);
-                    }
-                }
-            }
         }
     } 
     // Log warning if security is required but not available
@@ -1913,7 +1723,8 @@ async function main() {
   if (useHttp) {
     // Set up StreamableHTTP transport
     try {
-      const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+      const portArg = process.argv.find(a => a.startsWith('--port='));
+      const port = portArg ? parseInt(portArg.split('=')[1] || '3000', 10) : 3000;
       httpServerContext = await setupStreamableHttpServer(server, port) as { app: unknown, mcpHandler: unknown };
     } catch (error) {
       console.error("Error setting up StreamableHTTP server:", error);

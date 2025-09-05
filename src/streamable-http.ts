@@ -131,7 +131,7 @@ export class MCPStreamableHttpServer {
             // Set up clean-up for when the transport is closed
             transport.onclose = () => {
               console.error(`Session closed: ${newSessionId}`);
-              this.removeTransport(newSessionId);
+              this.removeTransport(newSessionId, true);
             };
           }
           
@@ -217,15 +217,16 @@ export class MCPStreamableHttpServer {
   /**
    * Remove transport and cleanup resources
    */
-  private removeTransport(sessionId: string): void {
+  private removeTransport(sessionId: string, alreadyClosed: boolean = false): void {
     const transport = this.transports[sessionId];
     if (transport) {
-      try {
-        transport.close();
-      } catch (error) {
-        console.error(`Error closing transport ${sessionId}:`, error);
+      if (!alreadyClosed) {
+        try {
+          transport.close();
+        } catch (error) {
+          console.error(`Error closing transport ${sessionId}:`, error);
+        }
       }
-      
       delete this.transports[sessionId];
       delete this.sessionLastActive[sessionId];
       
@@ -250,6 +251,8 @@ export class MCPStreamableHttpServer {
       console.error(`Session timeout for ${sessionId}`);
       this.removeTransport(sessionId);
     }, this.SESSION_TIMEOUT_MS);
+    // Allow process to exit even if timers exist
+    (this.transportTimeouts[sessionId] as any)?.unref?.();
   }
   
   /**
@@ -272,11 +275,13 @@ export class MCPStreamableHttpServer {
     // Clear all transports
     Object.entries(this.transports).forEach(([sessionId, transport]) => {
       try {
+        // Prevent recursive onclose -> removeTransport -> close loop
+        (transport as any).onclose = undefined;
         transport.close();
       } catch (error) {
         // Ignore errors during cleanup
       }
-      delete this.transports[sessionId];
+      this.removeTransport(sessionId, true);
     });
     
     // Clear session activity map
