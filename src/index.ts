@@ -15,6 +15,7 @@ import {
   type CallToolRequest
 } from "@modelcontextprotocol/sdk/types.js";
 import { setupStreamableHttpServer } from "./streamable-http.js";
+import { SERVER_NAME, SERVER_VERSION, API_BASE_URL } from './config.js';
 import { getRequestContext } from './request-context.js';
 
 import { z, ZodError } from 'zod';
@@ -60,13 +61,6 @@ interface McpToolDefinition {
     requestBodyContentType?: string;
     securityRequirements: SecurityRequirement[];
 }
-
-/**
- * Server configuration
- */
-export const SERVER_NAME = "digistore24-api";
-export const SERVER_VERSION = "1.0";
-export const API_BASE_URL = "https://www.digistore24.com/api/call";
 
 /**
  * MCP Server instance

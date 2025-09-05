@@ -15,7 +15,7 @@ import { runWithRequestContext } from './request-context.js';
 
 
 // Import server configuration constants
-import { SERVER_NAME, SERVER_VERSION } from './index.js';
+import { SERVER_NAME, SERVER_VERSION } from './config.js';
 
 // Constants
 const SESSION_ID_HEADER_NAME = "mcp-session-id";
