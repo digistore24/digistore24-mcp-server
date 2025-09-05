@@ -11,6 +11,7 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { InitializeRequestSchema, JSONRPCError } from "@modelcontextprotocol/sdk/types.js";
 import { toReqRes, toFetchResponse } from 'fetch-to-node';
 import axios from 'axios';
+import { runWithRequestContext } from './request-context.js';
 
 
 // Import server configuration constants
@@ -28,6 +29,7 @@ export class MCPStreamableHttpServer {
   // Store active transports by session ID with timeout tracking
   transports: {[sessionId: string]: StreamableHTTPServerTransport} = {};
   private transportTimeouts: {[sessionId: string]: NodeJS.Timeout} = {};
+  private sessionLastActive: {[sessionId: string]: number} = {};
   private readonly SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
   private cleanupInterval: NodeJS.Timeout | null = null;
   
@@ -77,74 +79,79 @@ export class MCPStreamableHttpServer {
       // Convert Fetch Request to Node.js req/res
       const { req, res } = toReqRes(c.req.raw);
       
-      // Reuse existing transport if we have a session ID
-      if (sessionId && this.transports[sessionId]) {
-        const transport = this.transports[sessionId];
-        
-        // Handle the request with the transport
-        await transport.handleRequest(req, res, body);
-        
-        // Cleanup when the response ends
-        res.on('close', () => {
-          console.error(`Request closed for session ${sessionId}`);
-        });
-        
-        // Convert Node.js response back to Fetch Response
-        return toFetchResponse(res);
-      }
-      
-      // Create new transport for initialize requests
-      if (!sessionId && this.isInitializeRequest(body)) {
-        console.error("Creating new StreamableHTTP transport for initialize request");
-        
-        const transport = new StreamableHTTPServerTransport({
-          sessionIdGenerator: () => uuid(),
-        });
-        
-        // Add error handler for debug purposes
-        transport.onerror = (err) => {
-          console.error('StreamableHTTP transport error:', err);
-        };
-        
-        // Connect the transport to the MCP server
-        await this.server.connect(transport);
-        
-        // Handle the request with the transport
-        await transport.handleRequest(req, res, body);
-        
-        // Store the transport if we have a session ID
-        const newSessionId = transport.sessionId;
-        if (newSessionId) {
-          console.error(`New session established: ${newSessionId}`);
-          this.transports[newSessionId] = transport;
+      const run = async () => {
+        // Reuse existing transport if we have a session ID
+        if (sessionId && this.transports[sessionId]) {
+          const transport = this.transports[sessionId];
           
-          // Set up timeout for this session
-          this.transportTimeouts[newSessionId] = setTimeout(() => {
-            console.error(`Session timeout for ${newSessionId}`);
-            this.removeTransport(newSessionId);
-          }, this.SESSION_TIMEOUT_MS);
+          // Handle the request with the transport
+          await transport.handleRequest(req, res, body);
           
-          // Set up clean-up for when the transport is closed
-          transport.onclose = () => {
-            console.error(`Session closed: ${newSessionId}`);
-            this.removeTransport(newSessionId);
-          };
+          // Update last activity and refresh timeout
+          this.markSessionActivity(sessionId);
+          
+          // Cleanup when the response ends
+          res.on('close', () => {
+            console.error(`Request closed for session ${sessionId}`);
+          });
+          
+          // Convert Node.js response back to Fetch Response
+          return toFetchResponse(res);
         }
         
-        // Cleanup when the response ends
-        res.on('close', () => {
-          console.error(`Request closed for new session`);
-        });
+        // Create new transport for initialize requests
+        if (!sessionId && this.isInitializeRequest(body)) {
+          console.error("Creating new StreamableHTTP transport for initialize request");
+          
+          const transport = new StreamableHTTPServerTransport({
+            sessionIdGenerator: () => uuid(),
+          });
+          
+          // Add error handler for debug purposes
+          transport.onerror = (err) => {
+            console.error('StreamableHTTP transport error:', err);
+          };
+          
+          // Connect the transport to the MCP server
+          await this.server.connect(transport);
+          
+          // Handle the request with the transport
+          await transport.handleRequest(req, res, body);
+          
+          // Store the transport if we have a session ID
+          const newSessionId = transport.sessionId;
+          if (newSessionId) {
+            console.error(`New session established: ${newSessionId}`);
+            this.transports[newSessionId] = transport;
+            this.sessionLastActive[newSessionId] = Date.now();
+            
+            // Set up timeout for this session and refresh on activity
+            this.refreshSessionTimeout(newSessionId);
+            
+            // Set up clean-up for when the transport is closed
+            transport.onclose = () => {
+              console.error(`Session closed: ${newSessionId}`);
+              this.removeTransport(newSessionId);
+            };
+          }
+          
+          // Cleanup when the response ends
+          res.on('close', () => {
+            console.error(`Request closed for new session`);
+          });
+          
+          // Convert Node.js response back to Fetch Response
+          return toFetchResponse(res);
+        }
         
-        // Convert Node.js response back to Fetch Response
-        return toFetchResponse(res);
-      }
+        // Invalid request (no session ID and not initialize)
+        return c.json(
+          this.createErrorResponse("Bad Request: invalid session ID or method."),
+          400
+        );
+      };
       
-      // Invalid request (no session ID and not initialize)
-      return c.json(
-        this.createErrorResponse("Bad Request: invalid session ID or method."),
-        400
-      );
+      return await runWithRequestContext({ apiKey: customerApiKey, sessionId: sessionId ?? null }, run);
     } catch (error) {
       console.error('Error handling MCP request:', error);
       return c.json(
@@ -191,13 +198,9 @@ export class MCPStreamableHttpServer {
     const now = Date.now();
     const expiredSessions: string[] = [];
     
-    for (const [sessionId, transport] of Object.entries(this.transports)) {
-      if (transport.sessionId && this.transportTimeouts[sessionId]) {
-        // Check if session has expired
-        const timeout = this.transportTimeouts[sessionId];
-        if (timeout && now > (timeout as any)._idleStart + this.SESSION_TIMEOUT_MS) {
-          expiredSessions.push(sessionId);
-        }
+    for (const [sessionId, lastActive] of Object.entries(this.sessionLastActive)) {
+      if (now - lastActive > this.SESSION_TIMEOUT_MS) {
+        expiredSessions.push(sessionId);
       }
     }
     
@@ -224,6 +227,7 @@ export class MCPStreamableHttpServer {
       }
       
       delete this.transports[sessionId];
+      delete this.sessionLastActive[sessionId];
       
       // Clear timeout
       if (this.transportTimeouts[sessionId]) {
@@ -231,6 +235,21 @@ export class MCPStreamableHttpServer {
         delete this.transportTimeouts[sessionId];
       }
     }
+  }
+
+  private markSessionActivity(sessionId: string): void {
+    this.sessionLastActive[sessionId] = Date.now();
+    this.refreshSessionTimeout(sessionId);
+  }
+
+  private refreshSessionTimeout(sessionId: string): void {
+    if (this.transportTimeouts[sessionId]) {
+      clearTimeout(this.transportTimeouts[sessionId]);
+    }
+    this.transportTimeouts[sessionId] = setTimeout(() => {
+      console.error(`Session timeout for ${sessionId}`);
+      this.removeTransport(sessionId);
+    }, this.SESSION_TIMEOUT_MS);
   }
   
   /**
@@ -243,23 +262,27 @@ export class MCPStreamableHttpServer {
     }
     
     // Clear all transport timeouts
-    Object.values(this.transportTimeouts).forEach(timeout => {
+    Object.entries(this.transportTimeouts).forEach(([sessionId, timeout]) => {
       if (timeout) {
         clearTimeout(timeout);
       }
+      delete this.transportTimeouts[sessionId];
     });
     
     // Clear all transports
-    Object.values(this.transports).forEach(transport => {
+    Object.entries(this.transports).forEach(([sessionId, transport]) => {
       try {
         transport.close();
       } catch (error) {
         // Ignore errors during cleanup
       }
+      delete this.transports[sessionId];
     });
     
-    this.transports = {};
-    this.transportTimeouts = {};
+    // Clear session activity map
+    Object.keys(this.sessionLastActive).forEach((sessionId) => {
+      delete this.sessionLastActive[sessionId];
+    });
   }
 }
 
@@ -345,5 +368,5 @@ export async function setupStreamableHttpServer(server: Server, port = 3000) {
     console.error(`- Health Check: http://localhost:${info.port}/health`);
   });
   
-  return app;
+  return { app, mcpHandler } as const;
 }

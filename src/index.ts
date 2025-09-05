@@ -18,6 +18,7 @@ import {
   type CallToolRequest
 } from "@modelcontextprotocol/sdk/types.js";
 import { setupStreamableHttpServer } from "./streamable-http.js";
+import { getRequestContext } from './request-context.js';
 
 import { z, ZodError } from 'zod';
 import { jsonSchemaToZod } from 'json-schema-to-zod';
@@ -1655,14 +1656,18 @@ async function executeApiTool(
         // Apply each security scheme from this requirement (combined with AND)
         for (const [schemeName, scopesArray] of Object.entries(appliedSecurity)) {
             const scheme = allSecuritySchemes[schemeName];
-            console.log(`Applying security scheme '${schemeName}'`);
-            console.log(process.env[`API_KEY_${schemeName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()}`]);
+            // Avoid logging secrets; only log scheme name
+            console.error(`Applying security scheme '${schemeName}'`);
             // API Key security
             if (scheme?.type === 'apiKey') {
-                const apiKey = process.env[`API_KEY_${schemeName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()}`];
+                const ctx = getRequestContext();
+                const apiKeyFromRequest = ctx?.apiKey || null;
+                const envApiKey = process.env[`API_KEY_${schemeName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()}`];
+                const apiKey = apiKeyFromRequest || envApiKey;
                 if (apiKey) {
                     if (scheme.in === 'header' && typeof scheme.name === 'string') {
-                        headers[scheme.name.toLowerCase()] = apiKey;
+                        // Preserve original header case for DS24
+                        headers[scheme.name] = apiKey;
                         console.error(`Applied API key '${schemeName}' in header '${scheme.name}'`);
                     }
                     else if (scheme.in === 'query' && typeof scheme.name === 'string') {
@@ -1670,7 +1675,6 @@ async function executeApiTool(
                         console.error(`Applied API key '${schemeName}' in query parameter '${scheme.name}'`);
                     }
                     else if (scheme.in === 'cookie' && typeof scheme.name === 'string') {
-                        // Add the cookie, preserving other cookies if they exist
                         headers['cookie'] = `${scheme.name}=${apiKey}${headers['cookie'] ? `; ${headers['cookie']}` : ''}`;
                         console.error(`Applied API key '${schemeName}' in cookie '${scheme.name}'`);
                     }
@@ -1820,11 +1824,17 @@ async function executeApiTool(
 
     // Log request info to stderr (doesn't affect MCP output)
     console.error(`Executing tool "${toolName}": ${config.method} ${config.url}`);
-    console.error(`Request data: ${config.data}`);
-    console.error(`Headers: ${JSON.stringify(config.headers, null, 2)}`);
+    // Redact sensitive headers
+    const redactHeader = (name: string, value: unknown) => {
+      const lower = name.toLowerCase();
+      if (['authorization','x-ds-api-key','cookie'].includes(lower)) return '[REDACTED]';
+      return value;
+    };
+    const redactedHeaders = Object.fromEntries(Object.entries(config.headers || {}).map(([k, v]) => [k, redactHeader(k, v)]));
+    console.error(`Headers: ${JSON.stringify(redactedHeaders, null, 2)}`);
     
     // Execute the request
-    const response = await axios(config);
+    const response = await axios({ ...config, timeout: 15000 });
 
     // Process and format the response
     let responseText = '';
@@ -1894,6 +1904,8 @@ async function executeApiTool(
 /**
  * Main function to start the server
  */
+let httpServerContext: { app: unknown, mcpHandler: unknown } | null = null;
+
 async function main() {
   // Check if we should use HTTP transport
   const useHttp = process.argv.includes('--transport=streamable-http') || process.argv.includes('--http');
@@ -1902,7 +1914,7 @@ async function main() {
     // Set up StreamableHTTP transport
     try {
       const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
-      await setupStreamableHttpServer(server, port);
+      httpServerContext = await setupStreamableHttpServer(server, port) as { app: unknown, mcpHandler: unknown };
     } catch (error) {
       console.error("Error setting up StreamableHTTP server:", error);
       process.exit(1);
@@ -1920,7 +1932,17 @@ async function main() {
  */
 async function cleanup() {
     console.error("Shutting down MCP server...");
-    process.exit(0);
+    try {
+        // Attempt to cleanup HTTP session resources if running in HTTP mode
+        const handler = (httpServerContext as any)?.mcpHandler;
+        if (handler && typeof handler.cleanup === 'function') {
+            handler.cleanup();
+        }
+    } catch (e) {
+        console.error('Error during cleanup:', e);
+    } finally {
+        process.exit(0);
+    }
 }
 
 // Register signal handlers
