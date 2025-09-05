@@ -44,10 +44,8 @@ The Digistore24 MCP server is a **hosted service** that provides AI assistants w
 
 ```
 1. Client Request → Authorization: Bearer API_KEY
-2. Server Validation → Set process.env.API_KEY_APIKEYAUTH
-3. API Call → Forward to Digistore24 with X-DS-API-KEY
-4. Response → Return to client
-5. Cleanup → API key discarded (stateless)
+2. API Call → Forward to Digistore24 with X-DS-API-KEY
+3. Response → Return to client
 ```
 
 ### Security Features
