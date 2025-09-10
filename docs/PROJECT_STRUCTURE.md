@@ -4,6 +4,9 @@
 digistore24-mcp-server/
 ├── README.md                    # Main project documentation
 ├── LICENSE                      # MIT License
+├── Dockerfile                   # Production Docker image
+├── .dockerignore               # Docker build optimization
+├── docker-compose.yml          # Development/testing setup
 ├── package.json                 # Project configuration and dependencies
 ├── tsconfig.json               # TypeScript configuration
 ├── jest.config.js              # Test configuration
@@ -19,14 +22,10 @@ digistore24-mcp-server/
 │   ├── streamable-http.js
 │   └── streamable-http.d.ts
 │
-├── docs/                       # Documentation
-│   ├── CUSTOMER_SETUP_GUIDE.md     # Customer-facing setup instructions (primary)
-│   ├── CURSOR_SETUP_GUIDE.md       # Specific instructions for Cursor users
-│   ├── HOSTING_DEPLOYMENT_GUIDE.md # Internal deployment guide
-│   └── ARCHITECTURE_SUMMARY.md     # Technical overview and design decisions
-│
-└── public/                     # Static files (optional web interface)
-    └── index.html              # Basic web interface
+└── docs/                       # Documentation
+    ├── CUSTOMER_SETUP_GUIDE.md     # Customer-facing setup instructions (primary)
+    ├── CURSOR_SETUP_GUIDE.md       # Specific instructions for Cursor users
+    └── ARCHITECTURE_SUMMARY.md     # Technical overview and design decisions
 ```
 
 ## Key Files
