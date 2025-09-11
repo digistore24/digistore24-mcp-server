@@ -43,20 +43,15 @@ ENV NODE_ENV=${NODE_ENV} \
     USER_UID=${USER_UID} \
     USER_GID=${USER_GID}
 
-# Combine package installations into a single RUN command with cache mount
+# Install system packages
 RUN --mount=type=cache,target=/var/cache/apk \
-    <<'EOF'
-    # Install dumb-init and ca-certificates for proper signal handling and SSL
     apk add --no-cache dumb-init ca-certificates
 
-    # Create non-root user for security with configurable UID/GID
-    addgroup -g ${USER_GID} -S nodejs
-    adduser -S ${USER} -u ${USER_UID} -G nodejs -s /bin/sh
-
-    # Create app directory with proper ownership
-    mkdir -p /app
+# Create non-root user for security with configurable UID/GID
+RUN addgroup -g ${USER_GID} -S nodejs && \
+    adduser -S ${USER} -u ${USER_UID} -G nodejs -s /bin/sh && \
+    mkdir -p /app && \
     chown -R ${USER}:nodejs /app
-EOF
 
 # Set working directory
 WORKDIR /app
@@ -67,13 +62,9 @@ COPY --link package*.json ./
 # Install only production dependencies with cache mount
 RUN --mount=type=cache,target=/root/.npm \
     --mount=type=cache,target=/home/${USER}/.npm \
-    <<'EOF'
-    npm ci --only=production
-    npm cache clean --force
-    
-    # Change ownership of node_modules to the user
+    npm ci --only=production && \
+    npm cache clean --force && \
     chown -R ${USER}:nodejs /app/node_modules
-EOF
 
 # Copy built application from builder stage using --link and proper ownership
 COPY --link --from=builder --chown=${USER}:nodejs /app/build ./build
