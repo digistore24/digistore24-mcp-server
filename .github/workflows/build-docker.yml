@@ -18,6 +18,7 @@ env:
 
 permissions:
   contents: read
+  actions: read
   packages: write
   id-token: write
   security-events: write
