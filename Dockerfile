@@ -67,10 +67,10 @@ RUN --mount=type=cache,target=/root/.npm \
     chown -R ${USER}:nodejs /app/node_modules
 
 # Copy built application from builder stage using --link and proper ownership
-COPY --link --from=builder --chown=${USER}:nodejs /app/build ./build
-COPY --link --from=builder --chown=${USER}:nodejs /app/docs ./docs
-COPY --link --from=builder --chown=${USER}:nodejs /app/README.md ./README.md
-COPY --link --from=builder --chown=${USER}:nodejs /app/LICENSE ./LICENSE
+COPY --link --from=builder --chown=${USER_UID}:${USER_GID} /app/build ./build
+COPY --link --from=builder --chown=${USER_UID}:${USER_GID} /app/docs ./docs
+COPY --link --from=builder --chown=${USER_UID}:${USER_GID} /app/README.md ./README.md
+COPY --link --from=builder --chown=${USER_UID}:${USER_GID} /app/LICENSE ./LICENSE
 
 # Switch to non-root user
 USER ${USER}
