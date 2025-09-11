@@ -123,6 +123,13 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Test Docker image
         run: |
           # Pull the built image
