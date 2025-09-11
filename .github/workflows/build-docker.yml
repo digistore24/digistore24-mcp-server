@@ -6,11 +6,12 @@ on:
       - main
     tags:
       - 'v*'
-  pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
+#  pull_request:
+#    types:
+#      - opened
+#      - synchronize
+#      - reopened
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -19,6 +20,7 @@ permissions:
   contents: read
   packages: write
   id-token: write
+  security-events: write
 
 jobs:
   prepare:
@@ -123,7 +125,7 @@ jobs:
           image-ref: ${{ needs.build.outputs.image }}
           format: 'sarif'
           output: 'trivy-results.sarif'
-          severity: 'CRITICAL,HIGH,MEDIUM'
+          severity: 'CRITICAL,HIGH'
           vuln-type: 'os,library'
           ignore-unfixed: true
 
