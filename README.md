@@ -259,6 +259,10 @@ digistore24-mcp-server/
 ├── Dockerfile             # Production Docker image
 ├── .dockerignore          # Docker build optimization
 ├── docker-compose.yml     # Development/testing setup
+├── .github/               # GitHub Actions workflows
+│   └── workflows/
+│       ├── build-docker.yml    # Docker build & publish
+│       ├── cleanup-cache.yml   # Cache cleanup
 ├── src/
 │   ├── index.ts           # Main MCP server logic
 │   └── streamable-http.ts # HTTP transport implementation
@@ -278,11 +282,25 @@ npm run build
 
 ### Docker Setup
 
-```bash
-# Development/Testing
-docker-compose up -d
+#### Using Pre-built Image (Recommended)
 
-# Production
+```bash
+# Pull and run the latest image from GitHub Container Registry
+docker run -d \
+  -p 3000:3000 \
+  -e NODE_ENV=production \
+  --restart unless-stopped \
+  --name digistore24-mcp \
+  ghcr.io/digistore24/digistore24-mcp-server:latest
+```
+
+#### Development/Testing
+
+```bash
+# Development with docker compose
+docker compose up -d
+
+# Or build locally
 docker build -t digistore24-mcp-server .
 docker run -d \
   -p 3000:3000 \
@@ -290,6 +308,12 @@ docker run -d \
   --restart unless-stopped \
   digistore24-mcp-server
 ```
+
+#### Available Image Tags
+
+- `latest` - Latest stable release from main branch
+- `main` - Latest commit from main branch
+- `v*` - Specific version releases (e.g., `v1.0.0`)
 
 ### Testing (Internal Development Only)
 
