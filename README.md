@@ -256,17 +256,22 @@ Add to your MCP configuration:
 
 ```
 digistore24-mcp-server/
+├── Dockerfile             # Production Docker image
+├── .dockerignore          # Docker build optimization
+├── docker-compose.yml     # Development/testing setup
+├── .github/               # GitHub Actions workflows
+│   └── workflows/
+│       ├── build-docker.yml    # Docker build & publish
+│       ├── cleanup-cache.yml   # Cache cleanup
 ├── src/
 │   ├── index.ts           # Main MCP server logic
 │   └── streamable-http.ts # HTTP transport implementation
 ├── build/                 # Compiled JavaScript
-├── public/               # Static files
-├── docs/                 # Documentation
+├── docs/                  # Documentation
 │   ├── CUSTOMER_SETUP_GUIDE.md
 │   ├── CURSOR_SETUP_GUIDE.md
-│   ├── HOSTING_DEPLOYMENT_GUIDE.md
 │   └── ARCHITECTURE_SUMMARY.md
-└── README.md             # This file
+└── README.md              # This file
 ```
 
 ### Building
@@ -274,6 +279,41 @@ digistore24-mcp-server/
 ```bash
 npm run build
 ```
+
+### Docker Setup
+
+#### Using Pre-built Image (Recommended)
+
+```bash
+# Pull and run the latest image from GitHub Container Registry
+docker run -d \
+  -p 3000:3000 \
+  -e NODE_ENV=production \
+  --restart unless-stopped \
+  --name digistore24-mcp \
+  ghcr.io/digistore24/digistore24-mcp-server:latest
+```
+
+#### Development/Testing
+
+```bash
+# Development with docker compose
+docker compose up -d
+
+# Or build locally
+docker build -t digistore24-mcp-server .
+docker run -d \
+  -p 3000:3000 \
+  -e NODE_ENV=production \
+  --restart unless-stopped \
+  digistore24-mcp-server
+```
+
+#### Available Image Tags
+
+- `latest` - Latest stable release from main branch
+- `main` - Latest commit from main branch
+- `v*` - Specific version releases (e.g., `v1.0.0`)
 
 ### Testing (Internal Development Only)
 
@@ -286,9 +326,20 @@ curl -H "Authorization: Bearer test" http://localhost:3000/test-api-key
 
 # Test MCP endpoint
 curl -X POST http://localhost:3000/mcp \
-  -H "Authorization: Bearer YOUR_KEY" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"ping"}'
+  -H "Accept: application/json, text/event-stream" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "initialize",
+    "params": {
+      "protocolVersion": "2024-11-05",
+      "capabilities": {"tools": {}},
+      "clientInfo": {"name": "test-client", "version": "1.0.0"}
+    }
+  }'
+
 ```
 
 ## 📖 Documentation

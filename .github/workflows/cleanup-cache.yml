@@ -1,0 +1,54 @@
+---
+name: Cleanup Docker Build Cache
+
+on:
+  schedule:
+    # Run weekly on Sundays at midnight UTC
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run mode (true/false)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+      older_than:
+        description: 'Delete images older than (days)'
+        required: false
+        default: '7'
+        type: string
+      keep_n_tagged:
+        description: 'Keep N most recent tagged images'
+        required: false
+        default: '10'
+        type: string
+
+permissions:
+  packages: write
+  contents: read
+
+concurrency:
+  group: cleanup-cache-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  cleanup-buildcache:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cleanup buildcache images
+        uses: dataaxiom/ghcr-cleanup-action@v1
+        with:
+          package: ${{ github.event.repository.name }}/buildcache
+          # Keep release branches and main branch caches
+          exclude-tags: |
+            main
+            v*
+          keep-n-tagged: ${{ github.event.inputs.keep_n_tagged || '10' }}
+          older-than: ${{ github.event.inputs.older_than || '7' }} days
+          keep-n-untagged: 3
+          dry-run: ${{ github.event.inputs.dry_run || 'false' }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
