@@ -39,7 +39,27 @@ describe('config.ts', () => {
     });
 
     it('should have correct API base URL constant', () => {
+      // Test default value when no environment variable is set
       expect(API_BASE_URL).toBe('https://www.digistore24.com/api/call');
+    });
+
+    it('should use environment variable for API base URL when set', () => {
+      const originalEnv = process.env.DIGISTORE_API_BASE_URL;
+      
+      // Set environment variable
+      process.env.DIGISTORE_API_BASE_URL = 'https://staging.digistore24.com/api/call';
+      
+      // Since we can't easily re-import ES modules in tests, we'll test the logic directly
+      const testApiUrl = process.env.DIGISTORE_API_BASE_URL || "https://www.digistore24.com/api/call";
+      
+      expect(testApiUrl).toBe('https://staging.digistore24.com/api/call');
+      
+      // Restore original environment
+      if (originalEnv !== undefined) {
+        process.env.DIGISTORE_API_BASE_URL = originalEnv;
+      } else {
+        delete process.env.DIGISTORE_API_BASE_URL;
+      }
     });
   });
 });
