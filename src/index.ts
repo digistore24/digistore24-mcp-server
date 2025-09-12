@@ -1458,10 +1458,17 @@ async function executeApiTool(
       
       // Add request body data
       if (requestBodyData && typeof requestBodyData === 'object') {
+        // Check if this method needs data[] wrapper based on method name
+        const methodsNeedingDataWrapper = [
+          'createVoucher', 'createProduct', 'createBuyUrl', 'createAffiliate'
+        ];
+        const methodName = definition.pathTemplate.replace('/', '');
+        const needsDataWrapper = methodsNeedingDataWrapper.includes(methodName);
+        
         Object.entries(requestBodyData).forEach(([key, value]) => {
           if (value !== undefined && value !== null && !queryParams.hasOwnProperty(key)) {
             // Only add if it wasn't already added as a query parameter
-            if (typeof value === 'object') {
+            if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
               // Handle nested objects
               Object.entries(value as Record<string, unknown>).forEach(([nestedKey, nestedValue]) => {
                 if (nestedValue !== undefined && nestedValue !== null) {
@@ -1469,14 +1476,7 @@ async function executeApiTool(
                 }
               });
             } else {
-              // Check if this method needs data[] wrapper based on method name
-              // Methods like createVoucher need the data[] wrapper despite having JSON content type
-              const methodsNeedingDataWrapper = [
-                'createVoucher', 'createProduct', 'createBuyUrl', 'createAffiliate'
-              ];
-              const methodName = definition.pathTemplate.replace('/', '');
-              const needsDataWrapper = methodsNeedingDataWrapper.includes(methodName);
-              
+              // Handle primitive values (strings, numbers, booleans, arrays)
               if (needsDataWrapper) {
                 formData.append(`data[${key}]`, String(value));
               } else {
@@ -1503,6 +1503,8 @@ async function executeApiTool(
 
     // Log request info to stderr (doesn't affect MCP output)
     console.error(`Executing tool "${toolName}": ${config.method} ${config.url}`);
+    console.error(`Request body data: ${JSON.stringify(requestBodyData, null, 2)}`);
+    console.error(`Form data: ${requestData}`);
     // Redact sensitive headers
     const redactHeader = (name: string, value: unknown) => {
       const lower = name.toLowerCase();
