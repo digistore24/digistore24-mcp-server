@@ -58,7 +58,6 @@ interface McpToolDefinition {
     method: string;
     pathTemplate: string;
     executionParameters: { name: string, in: string }[];
-    requestBodyContentType?: string;
     securityRequirements: SecurityRequirement[];
 }
 
@@ -84,7 +83,6 @@ This will be billed with the next payments.
     method: "post",
     pathTemplate: "/addBalanceToPurchase",
     executionParameters: [{"name":"purchase_id","in":"query"},{"name":"amount","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["PostCopyproduct", {
@@ -94,7 +92,6 @@ This will be billed with the next payments.
     method: "post",
     pathTemplate: "/copyProduct",
     executionParameters: [{"name":"product_id","in":"query"},{"name":"data","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["PostLogmemberaccess", {
@@ -107,7 +104,6 @@ Only call this function if the buyer actually has logged in.
     method: "post",
     pathTemplate: "/logMemberAccess",
     executionParameters: [{"name":"purchase_id","in":"query"},{"name":"platform_name","in":"query"},{"name":"login_name","in":"query"},{"name":"login_url","in":"query"},{"name":"number_of_unlocked_lectures","in":"query"},{"name":"total_number_of_lectures","in":"query"},{"name":"login_at","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["PostCreatebillingondemand", {
@@ -120,7 +116,6 @@ Requires "Billing on demand" right to be enabled for the vendor account.
     method: "post",
     pathTemplate: "/createBillingOnDemand",
     executionParameters: [{"name":"purchase_id","in":"query"},{"name":"product_id","in":"query"},{"name":"payment_plan","in":"query"},{"name":"tracking","in":"query"},{"name":"placeholders","in":"query"},{"name":"settings","in":"query"},{"name":"addons","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["PostCreateaddonchangepurchase", {
@@ -134,7 +129,6 @@ Requires "Billing on demand" right to be enabled for the vendor account.
     method: "post",
     pathTemplate: "/createAddonChangePurchase",
     executionParameters: [{"name":"purchase_id","in":"query"},{"name":"addons","in":"query"},{"name":"tracking","in":"query"},{"name":"placeholders","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["PostCreatebuyurl", {
@@ -146,7 +140,6 @@ For example, customer data can be entered and set as read-only. Prices can also 
     method: "post",
     pathTemplate: "/createBuyUrl",
     executionParameters: [{"name":"product_id","in":"query"},{"name":"buyer","in":"query"},{"name":"payment_plan","in":"query"},{"name":"tracking","in":"query"},{"name":"valid_until","in":"query"},{"name":"urls","in":"query"},{"name":"placeholders","in":"query"},{"name":"settings","in":"query"},{"name":"addons","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["PostCreateimage", {
@@ -156,7 +149,6 @@ For example, customer data can be entered and set as read-only. Prices can also 
     method: "post",
     pathTemplate: "/createImage",
     executionParameters: [{"name":"data","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["PostCreateeticket", {
@@ -166,7 +158,6 @@ For example, customer data can be entered and set as read-only. Prices can also 
     method: "post",
     pathTemplate: "/createEticket",
     executionParameters: [{"name":"buyer","in":"query"},{"name":"product_id","in":"query"},{"name":"location_id","in":"query"},{"name":"template_id","in":"query"},{"name":"date","in":"query"},{"name":"days","in":"query"},{"name":"note","in":"query"},{"name":"count","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["PostCreateorderform", {
@@ -176,7 +167,6 @@ For example, customer data can be entered and set as read-only. Prices can also 
     method: "post",
     pathTemplate: "/createOrderform",
     executionParameters: [{"name":"data","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["PostCreatepaymentplan", {
@@ -186,7 +176,6 @@ For example, customer data can be entered and set as read-only. Prices can also 
     method: "post",
     pathTemplate: "/createPaymentplan",
     executionParameters: [{"name":"product_id","in":"query"},{"name":"data","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["PostCreateproduct", {
@@ -196,7 +185,6 @@ For example, customer data can be entered and set as read-only. Prices can also 
     method: "post",
     pathTemplate: "/createProduct",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["PostCreateproductgroup", {
@@ -206,7 +194,6 @@ For example, customer data can be entered and set as read-only. Prices can also 
     method: "post",
     pathTemplate: "/createProductGroup",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["PostCreateshippingcostpolicy", {
@@ -216,7 +203,6 @@ For example, customer data can be entered and set as read-only. Prices can also 
     method: "post",
     pathTemplate: "/createShippingCostPolicy",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["PostCreateupgrade", {
@@ -226,7 +212,6 @@ For example, customer data can be entered and set as read-only. Prices can also 
     method: "post",
     pathTemplate: "/createUpgrade",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["PostCreateupgradepurchase", {
@@ -239,7 +224,6 @@ Note: You must ensure the buyer is informed and agrees to automatic upgrades.
     method: "post",
     pathTemplate: "/createUpgradePurchase",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["PostCreatevoucher", {
@@ -249,7 +233,6 @@ Note: You must ensure the buyer is informed and agrees to automatic upgrades.
     method: "post",
     pathTemplate: "/createVoucher",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["DeleteDeletebuyurl", {
@@ -259,7 +242,6 @@ Note: You must ensure the buyer is informed and agrees to automatic upgrades.
     method: "delete",
     pathTemplate: "/deleteBuyUrl",
     executionParameters: [{"name":"id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["DeleteDeleteimage", {
@@ -269,7 +251,6 @@ Note: You must ensure the buyer is informed and agrees to automatic upgrades.
     method: "delete",
     pathTemplate: "/deleteImage",
     executionParameters: [{"name":"image_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["DeleteDeleteorderform", {
@@ -279,7 +260,6 @@ Note: You must ensure the buyer is informed and agrees to automatic upgrades.
     method: "delete",
     pathTemplate: "/deleteOrderform",
     executionParameters: [{"name":"orderform_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["DeleteDeletepaymentplan", {
@@ -289,7 +269,6 @@ Note: You must ensure the buyer is informed and agrees to automatic upgrades.
     method: "delete",
     pathTemplate: "/deletePaymentplan",
     executionParameters: [{"name":"paymentplan_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["DeleteDeleteproduct", {
@@ -299,7 +278,6 @@ Note: You must ensure the buyer is informed and agrees to automatic upgrades.
     method: "delete",
     pathTemplate: "/deleteProduct",
     executionParameters: [{"name":"product_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["DeleteDeleteproductgroup", {
@@ -309,7 +287,6 @@ Note: You must ensure the buyer is informed and agrees to automatic upgrades.
     method: "delete",
     pathTemplate: "/deleteProductGroup",
     executionParameters: [{"name":"product_group_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["DeleteDeleteshippingcostpolicy", {
@@ -319,7 +296,6 @@ Note: You must ensure the buyer is informed and agrees to automatic upgrades.
     method: "delete",
     pathTemplate: "/deleteShippingCostPolicy",
     executionParameters: [{"name":"policy_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["DeleteDeleteupgrade", {
@@ -329,7 +305,6 @@ Note: You must ensure the buyer is informed and agrees to automatic upgrades.
     method: "delete",
     pathTemplate: "/deleteUpgrade",
     executionParameters: [{"name":"upgrade_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["DeleteDeleteupsells", {
@@ -339,7 +314,6 @@ Note: You must ensure the buyer is informed and agrees to automatic upgrades.
     method: "delete",
     pathTemplate: "/deleteUpsells",
     executionParameters: [{"name":"product_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["DeleteDeletevoucher", {
@@ -349,7 +323,6 @@ Note: You must ensure the buyer is informed and agrees to automatic upgrades.
     method: "delete",
     pathTemplate: "/deleteVoucher",
     executionParameters: [{"name":"code","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["GetGetaffiliatecommission", {
@@ -359,7 +332,6 @@ Note: You must ensure the buyer is informed and agrees to automatic upgrades.
     method: "get",
     pathTemplate: "/getAffiliateCommission",
     executionParameters: [{"name":"affiliate_id","in":"query"},{"name":"product_ids","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["GetGetbuyer", {
@@ -369,7 +341,6 @@ Note: You must ensure the buyer is informed and agrees to automatic upgrades.
     method: "get",
     pathTemplate: "/getBuyer",
     executionParameters: [{"name":"buyer_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["GetGetdelivery", {
@@ -379,7 +350,6 @@ Note: You must ensure the buyer is informed and agrees to automatic upgrades.
     method: "get",
     pathTemplate: "/getDelivery",
     executionParameters: [{"name":"delivery_id","in":"query"},{"name":"set_in_progress","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["GetGeteticket", {
@@ -389,7 +359,6 @@ Note: You must ensure the buyer is informed and agrees to automatic upgrades.
     method: "get",
     pathTemplate: "/getEticket",
     executionParameters: [{"name":"eticket_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["GetGeteticketsettings", {
@@ -399,7 +368,6 @@ Note: You must ensure the buyer is informed and agrees to automatic upgrades.
     method: "get",
     pathTemplate: "/getEticketSettings",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["GetGetglobalsettings", {
@@ -409,7 +377,6 @@ Note: You must ensure the buyer is informed and agrees to automatic upgrades.
     method: "get",
     pathTemplate: "/getGlobalSettings",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["GetGetimage", {
@@ -419,7 +386,6 @@ Note: You must ensure the buyer is informed and agrees to automatic upgrades.
     method: "get",
     pathTemplate: "/getImage",
     executionParameters: [{"name":"image_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["GetGetmarketplaceentry", {
@@ -429,7 +395,6 @@ Note: You must ensure the buyer is informed and agrees to automatic upgrades.
     method: "get",
     pathTemplate: "/getMarketplaceEntry",
     executionParameters: [{"name":"entry_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["GetGetserviceproofrequest", {
@@ -442,7 +407,6 @@ especially for sales in Germany where the right to refund can be voided.
     method: "get",
     pathTemplate: "/getServiceProofRequest",
     executionParameters: [{"name":"service_proof_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["GetGetorderform", {
@@ -452,7 +416,6 @@ especially for sales in Germany where the right to refund can be voided.
     method: "get",
     pathTemplate: "/getOrderform",
     executionParameters: [{"name":"orderform_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["GetGetorderformmetas", {
@@ -462,7 +425,6 @@ especially for sales in Germany where the right to refund can be voided.
     method: "get",
     pathTemplate: "/getOrderformMetas",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["GetGetproduct", {
@@ -472,7 +434,6 @@ especially for sales in Germany where the right to refund can be voided.
     method: "get",
     pathTemplate: "/getProduct",
     executionParameters: [{"name":"product_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["GetGetproductgroup", {
@@ -482,7 +443,6 @@ especially for sales in Germany where the right to refund can be voided.
     method: "get",
     pathTemplate: "/getProductGroup",
     executionParameters: [{"name":"product_group_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["GetGetshippingcostpolicy", {
@@ -492,7 +452,6 @@ especially for sales in Germany where the right to refund can be voided.
     method: "get",
     pathTemplate: "/getShippingCostPolicy",
     executionParameters: [{"name":"policy_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["GetGetpurchase", {
@@ -502,7 +461,6 @@ especially for sales in Germany where the right to refund can be voided.
     method: "get",
     pathTemplate: "/getPurchase",
     executionParameters: [{"name":"purchase_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["GetGetcustomertoaffiliatebuyerdetails", {
@@ -514,7 +472,6 @@ Requires customer-to-affiliate program to be set up in Digistore24 first.
     method: "get",
     pathTemplate: "/getCustomerToAffiliateBuyerDetails",
     executionParameters: [{"name":"purchase_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["GetGetpurchasetracking", {
@@ -524,7 +481,6 @@ Requires customer-to-affiliate program to be set up in Digistore24 first.
     method: "get",
     pathTemplate: "/getPurchaseTracking",
     executionParameters: [{"name":"purchase_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["GetGetpurchasedownloads", {
@@ -534,7 +490,6 @@ Requires customer-to-affiliate program to be set up in Digistore24 first.
     method: "get",
     pathTemplate: "/getPurchaseDownloads",
     executionParameters: [{"name":"purchase_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["GetGetreferringaffiliate", {
@@ -544,7 +499,6 @@ Requires customer-to-affiliate program to be set up in Digistore24 first.
     method: "get",
     pathTemplate: "/getReferringAffiliate",
     executionParameters: [{"name":"affiliate_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["GetGetsmartupgrade", {
@@ -556,7 +510,6 @@ Note: Response may be slow, caching is recommended.
     method: "get",
     pathTemplate: "/getSmartupgrade",
     executionParameters: [{"name":"smartupgrade_id","in":"query"},{"name":"purchase_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["GetGetupgrade", {
@@ -566,7 +519,6 @@ Note: Response may be slow, caching is recommended.
     method: "get",
     pathTemplate: "/getUpgrade",
     executionParameters: [{"name":"upgrade_id","in":"query"},{"name":"order_ids","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["GetGetupsells", {
@@ -582,7 +534,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/getUpsells",
     executionParameters: [{"name":"product_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["GetGetuserinfo", {
@@ -592,7 +543,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/getUserInfo",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["getVoucher", {
@@ -602,7 +552,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/getVoucher",
     executionParameters: [{"name":"code","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["ipnDelete", {
@@ -612,7 +561,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "delete",
     pathTemplate: "/ipnDelete",
     executionParameters: [{"name":"domain_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["ipnInfo", {
@@ -622,7 +570,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/ipnInfo",
     executionParameters: [{"name":"domain_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["ipnSetup", {
@@ -632,7 +579,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "post",
     pathTemplate: "/ipnSetup",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["listAccountAccess", {
@@ -642,7 +588,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/listAccountAccess",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["listBuyers", {
@@ -652,7 +597,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/listBuyers",
     executionParameters: [{"name":"page_no","in":"query"},{"name":"page_size","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["listBuyUrls", {
@@ -662,7 +606,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/listBuyUrls",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["listCommissions", {
@@ -672,7 +615,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/listCommissions",
     executionParameters: [{"name":"from","in":"query"},{"name":"to","in":"query"},{"name":"page_no","in":"query"},{"name":"page_size","in":"query"},{"name":"transaction_type","in":"query"},{"name":"commission_type","in":"query"},{"name":"purchase_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["listConversionTools", {
@@ -682,7 +624,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/listConversionTools",
     executionParameters: [{"name":"type","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["listCountries", {
@@ -692,7 +633,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/listCountries",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["listCurrencies", {
@@ -702,7 +642,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/listCurrencies",
     executionParameters: [{"name":"convert_to","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["listEticketLocations", {
@@ -712,7 +651,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/listEticketLocations",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["listCustomFormRecords", {
@@ -722,7 +660,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/listCustomFormRecords",
     executionParameters: [{"name":"purchase_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["listEticketTemplates", {
@@ -732,7 +669,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/listEticketTemplates",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["listServiceProofRequests", {
@@ -742,7 +678,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/listServiceProofRequests",
     executionParameters: [{"name":"search","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["listDeliveries", {
@@ -752,7 +687,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/listDeliveries",
     executionParameters: [{"name":"search","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["listEtickets", {
@@ -762,7 +696,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/listEtickets",
     executionParameters: [{"name":"search","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["listImages", {
@@ -772,7 +705,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/listImages",
     executionParameters: [{"name":"usage_type","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["listInvoices", {
@@ -782,7 +714,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/listInvoices",
     executionParameters: [{"name":"purchase_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["listMarketplaceEntries", {
@@ -792,7 +723,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/listMarketplaceEntries",
     executionParameters: [{"name":"sort_by","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["listOrderforms", {
@@ -802,7 +732,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/listOrderforms",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["listPurchasesOfEmail", {
@@ -812,7 +741,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/listPurchasesOfEmail",
     executionParameters: [{"name":"email","in":"query"},{"name":"limit","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["listPaymentPlans", {
@@ -822,7 +750,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/listPaymentPlans",
     executionParameters: [{"name":"product_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["listPayouts", {
@@ -832,7 +759,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/listPayouts",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["listProductGroups", {
@@ -842,7 +768,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/listProductGroups",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["listShippingCostPolicies", {
@@ -852,7 +777,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/listShippingCostPolicies",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["listProducts", {
@@ -862,7 +786,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/listProducts",
     executionParameters: [{"name":"sort_by","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["listProductTypes", {
@@ -872,7 +795,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/listProductTypes",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["listPurchases", {
@@ -882,7 +804,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/listPurchases",
     executionParameters: [{"name":"from","in":"query"},{"name":"to","in":"query"},{"name":"search","in":"query"},{"name":"sort_by","in":"query"},{"name":"sort_order","in":"query"},{"name":"load_transactions","in":"query"},{"name":"page_no","in":"query"},{"name":"page_size","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["GetListrebillingstatuschanges", {
@@ -892,7 +813,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/listRebillingStatusChanges",
     executionParameters: [{"name":"from","in":"query"},{"name":"to","in":"query"},{"name":"page_no","in":"query"},{"name":"page_size","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["GetListsmartupgrades", {
@@ -902,7 +822,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/listSmartUpgrades",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["PostListtransactions", {
@@ -914,7 +833,6 @@ and chargebacks from joint venture sales.
     method: "post",
     pathTemplate: "/listTransactions",
     executionParameters: [{"name":"from","in":"query"},{"name":"to","in":"query"},{"name":"search","in":"query"},{"name":"sort_by","in":"query"},{"name":"sort_order","in":"query"},{"name":"page_no","in":"query"},{"name":"page_size","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["PostListupgrades", {
@@ -924,7 +842,6 @@ and chargebacks from joint venture sales.
     method: "post",
     pathTemplate: "/listUpgrades",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["PostListvouchers", {
@@ -934,7 +851,6 @@ and chargebacks from joint venture sales.
     method: "post",
     pathTemplate: "/listVouchers",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["PostGetaffiliateforemail", {
@@ -944,7 +860,6 @@ and chargebacks from joint venture sales.
     method: "post",
     pathTemplate: "/getAffiliateForEmail",
     executionParameters: [{"name":"email","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["PostCreaterebillingpayment", {
@@ -956,7 +871,6 @@ The payment plan must be set to "Billing mode: by trigger" in the payment plan d
     method: "post",
     pathTemplate: "/createRebillingPayment",
     executionParameters: [{"name":"purchase_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["ping", {
@@ -966,7 +880,6 @@ The payment plan must be set to "Billing mode: by trigger" in the payment plan d
     method: "get",
     pathTemplate: "/ping",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["refundPartially", {
@@ -976,7 +889,6 @@ The payment plan must be set to "Billing mode: by trigger" in the payment plan d
     method: "post",
     pathTemplate: "/refundPartially",
     executionParameters: [{"name":"purchase_id","in":"query"},{"name":"amount","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["refundPurchase", {
@@ -986,7 +898,6 @@ The payment plan must be set to "Billing mode: by trigger" in the payment plan d
     method: "post",
     pathTemplate: "/refundPurchase",
     executionParameters: [{"name":"purchase_id","in":"query"},{"name":"force","in":"query"},{"name":"request_date","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["refundTransaction", {
@@ -996,7 +907,6 @@ The payment plan must be set to "Billing mode: by trigger" in the payment plan d
     method: "post",
     pathTemplate: "/refundTransaction",
     executionParameters: [{"name":"transaction_id","in":"query"},{"name":"force","in":"query"},{"name":"request_date","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["renderJsTrackingCode", {
@@ -1006,7 +916,6 @@ The payment plan must be set to "Billing mode: by trigger" in the payment plan d
     method: "get",
     pathTemplate: "/renderJsTrackingCode",
     executionParameters: [{"name":"affiliate_input","in":"query"},{"name":"campaignkey_input","in":"query"},{"name":"trackingkey_input","in":"query"},{"name":"callback","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["reportFraud", {
@@ -1016,7 +925,6 @@ The payment plan must be set to "Billing mode: by trigger" in the payment plan d
     method: "post",
     pathTemplate: "/reportFraud",
     executionParameters: [{"name":"transaction_id","in":"query"},{"name":"who","in":"query"},{"name":"comment","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["requestApiKey", {
@@ -1026,7 +934,6 @@ The payment plan must be set to "Billing mode: by trigger" in the payment plan d
     method: "post",
     pathTemplate: "/requestApiKey",
     executionParameters: [{"name":"permissions","in":"query"},{"name":"return_url","in":"query"},{"name":"cancel_url","in":"query"},{"name":"site_url","in":"query"},{"name":"comment","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["resendInvoiceMail", {
@@ -1036,7 +943,6 @@ The payment plan must be set to "Billing mode: by trigger" in the payment plan d
     method: "post",
     pathTemplate: "/resendInvoiceMail",
     executionParameters: [{"name":"purchase_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["resendPurchaseConfirmationMail", {
@@ -1046,7 +952,6 @@ The payment plan must be set to "Billing mode: by trigger" in the payment plan d
     method: "post",
     pathTemplate: "/resendPurchaseConfirmationMail",
     executionParameters: [{"name":"purchase_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["retrieveApiKey", {
@@ -1056,7 +961,6 @@ The payment plan must be set to "Billing mode: by trigger" in the payment plan d
     method: "post",
     pathTemplate: "/retrieveApiKey",
     executionParameters: [{"name":"token","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["setAffiliateForEmail", {
@@ -1066,7 +970,6 @@ The payment plan must be set to "Billing mode: by trigger" in the payment plan d
     method: "post",
     pathTemplate: "/setAffiliateForEmail",
     executionParameters: [{"name":"email","in":"query"},{"name":"affiliate","in":"query"},{"name":"campaignkey","in":"query"},{"name":"trackingkey","in":"query"},{"name":"click_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["setReferringAffiliate", {
@@ -1076,7 +979,6 @@ The payment plan must be set to "Billing mode: by trigger" in the payment plan d
     method: "post",
     pathTemplate: "/setReferringAffiliate",
     executionParameters: [{"name":"referrer_id","in":"query"},{"name":"affiliate_id","in":"query"},{"name":"commission","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["startRebilling", {
@@ -1086,7 +988,6 @@ The payment plan must be set to "Billing mode: by trigger" in the payment plan d
     method: "post",
     pathTemplate: "/startRebilling",
     executionParameters: [{"name":"purchase_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["statsAffiliateToplist", {
@@ -1096,7 +997,6 @@ The payment plan must be set to "Billing mode: by trigger" in the payment plan d
     method: "get",
     pathTemplate: "/statsAffiliateToplist",
     executionParameters: [{"name":"from","in":"query"},{"name":"to","in":"query"},{"name":"affiliate","in":"query"},{"name":"currency","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["statsDailyAmounts", {
@@ -1106,7 +1006,6 @@ The payment plan must be set to "Billing mode: by trigger" in the payment plan d
     method: "get",
     pathTemplate: "/statsDailyAmounts",
     executionParameters: [{"name":"from","in":"query"},{"name":"to","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["statsExpectedPayouts", {
@@ -1116,7 +1015,6 @@ The payment plan must be set to "Billing mode: by trigger" in the payment plan d
     method: "get",
     pathTemplate: "/statsExpectedPayouts",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["statsMarketplace", {
@@ -1127,7 +1025,6 @@ The payment plan must be set to "Billing mode: by trigger" in the payment plan d
     method: "get",
     pathTemplate: "/statsMarketplace",
     executionParameters: [{"name":"language","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["statsSales", {
@@ -1138,7 +1035,6 @@ The payment plan must be set to "Billing mode: by trigger" in the payment plan d
     method: "get",
     pathTemplate: "/statsSales",
     executionParameters: [{"name":"period","in":"query"},{"name":"from","in":"query"},{"name":"to","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["statsSalesSummary", {
@@ -1149,7 +1045,6 @@ The payment plan must be set to "Billing mode: by trigger" in the payment plan d
     method: "get",
     pathTemplate: "/statsSalesSummary",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["stopRebilling", {
@@ -1160,7 +1055,6 @@ The payment plan must be set to "Billing mode: by trigger" in the payment plan d
     method: "post",
     pathTemplate: "/stopRebilling",
     executionParameters: [{"name":"purchase_id","in":"query"},{"name":"force","in":"query"},{"name":"ignore_refund_possibility","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["unregister", {
@@ -1171,7 +1065,6 @@ The payment plan must be set to "Billing mode: by trigger" in the payment plan d
     method: "delete",
     pathTemplate: "/unregister",
     executionParameters: [],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["updateAffiliateCommission", {
@@ -1183,7 +1076,6 @@ If product_ids is not "all" and no affiliations have been set up for some produc
     method: "put",
     pathTemplate: "/updateAffiliateCommission",
     executionParameters: [{"name":"affiliate_id","in":"query"},{"name":"product_ids","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["updateBuyer", {
@@ -1194,7 +1086,6 @@ If product_ids is not "all" and no affiliations have been set up for some produc
     method: "put",
     pathTemplate: "/updateBuyer",
     executionParameters: [{"name":"buyer_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["updateDelivery", {
@@ -1205,7 +1096,6 @@ If product_ids is not "all" and no affiliations have been set up for some produc
     method: "put",
     pathTemplate: "/updateDelivery",
     executionParameters: [{"name":"delivery_id","in":"query"},{"name":"notify_via_email","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["updateOrderform", {
@@ -1216,7 +1106,6 @@ If product_ids is not "all" and no affiliations have been set up for some produc
     method: "put",
     pathTemplate: "/updateOrderform",
     executionParameters: [{"name":"orderform_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["updatePaymentplan", {
@@ -1227,7 +1116,6 @@ If product_ids is not "all" and no affiliations have been set up for some produc
     method: "put",
     pathTemplate: "/updatePaymentplan",
     executionParameters: [{"name":"paymentplan_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["updateProduct", {
@@ -1238,7 +1126,6 @@ If product_ids is not "all" and no affiliations have been set up for some produc
     method: "put",
     pathTemplate: "/updateProduct",
     executionParameters: [{"name":"product_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["updateProductGroup", {
@@ -1249,7 +1136,6 @@ If product_ids is not "all" and no affiliations have been set up for some produc
     method: "put",
     pathTemplate: "/updateProductGroup",
     executionParameters: [{"name":"product_group_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["updatePurchase", {
@@ -1260,7 +1146,6 @@ If product_ids is not "all" and no affiliations have been set up for some produc
     method: "put",
     pathTemplate: "/updatePurchase",
     executionParameters: [{"name":"purchase_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["updateServiceProofRequest", {
@@ -1273,7 +1158,6 @@ that the service was actually provided.
     method: "put",
     pathTemplate: "/updateServiceProofRequest",
     executionParameters: [{"name":"service_proof_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["updateShippingCostPolicy", {
@@ -1284,7 +1168,6 @@ that the service was actually provided.
     method: "put",
     pathTemplate: "/updateShippingCostPolicy",
     executionParameters: [{"name":"policy_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["updateUpsells", {
@@ -1295,7 +1178,6 @@ that the service was actually provided.
     method: "put",
     pathTemplate: "/updateUpsells",
     executionParameters: [{"name":"product_id","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["updateVoucher", {
@@ -1306,7 +1188,6 @@ that the service was actually provided.
     method: "put",
     pathTemplate: "/updateVoucher",
     executionParameters: [{"name":"code","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["validateAffiliate", {
@@ -1318,7 +1199,6 @@ Returns the same information as when setting up an order form (where the affilia
     method: "get",
     pathTemplate: "/validateAffiliate",
     executionParameters: [{"name":"affiliate_name","in":"query"},{"name":"product_ids","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["validateCouponCode", {
@@ -1329,7 +1209,6 @@ Returns the same information as when setting up an order form (where the affilia
     method: "get",
     pathTemplate: "/validateCouponCode",
     executionParameters: [{"name":"code","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["validateEticket", {
@@ -1341,7 +1220,6 @@ If valid, marks the e-ticket as used.
     method: "get",
     pathTemplate: "/validateEticket",
     executionParameters: [{"name":"eticket_id","in":"query"},{"name":"template_id","in":"query"},{"name":"location_id","in":"query"},{"name":"date","in":"query"},{"name":"seperator","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["validateLicenseKey", {
@@ -1352,7 +1230,6 @@ If valid, marks the e-ticket as used.
     method: "get",
     pathTemplate: "/validateLicenseKey",
     executionParameters: [{"name":"purchase_id","in":"query"},{"name":"license_key","in":"query"}],
-    requestBodyContentType: undefined,
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
 ]);
@@ -1474,23 +1351,11 @@ async function executeApiTool(
     const requestUrl = API_BASE_URL ? `${API_BASE_URL}${urlPath}` : urlPath;
     
     // Handle request body if needed
-    if (definition.requestBodyContentType) {
-        // Look for either 'requestBody' or 'data' parameter depending on the method
-        if (typeof validatedArgs['requestBody'] !== 'undefined') {
-            requestBodyData = validatedArgs['requestBody'];
-        } else if (typeof validatedArgs['data'] !== 'undefined') {
-            requestBodyData = validatedArgs['data'];
-        }
-        if (requestBodyData !== undefined) {
-            headers['content-type'] = definition.requestBodyContentType;
-        }
-    } else {
-        // Even if no requestBodyContentType, we still need to look for request body data
-        if (typeof validatedArgs['requestBody'] !== 'undefined') {
-            requestBodyData = validatedArgs['requestBody'];
-        } else if (typeof validatedArgs['data'] !== 'undefined') {
-            requestBodyData = validatedArgs['data'];
-        }
+    // Look for either 'requestBody' or 'data' parameter depending on the method
+    if (typeof validatedArgs['requestBody'] !== 'undefined') {
+        requestBodyData = validatedArgs['requestBody'];
+    } else if (typeof validatedArgs['data'] !== 'undefined') {
+        requestBodyData = validatedArgs['data'];
     }
 
 
@@ -1581,15 +1446,8 @@ async function executeApiTool(
     let requestData: unknown;
     let requestContentType: string;
     
-    // Check if this method should use JSON or form encoding
-    if (definition.requestBodyContentType === 'application/json') {
-      // Use JSON format for methods that specify it
-      // Digistore24 API expects data to be wrapped in a 'data' object even for JSON requests
-      requestData = { data: requestBodyData };
-      requestContentType = 'application/json';
-    } else {
-      // Use form encoding for methods that don't specify JSON
-      const formData = new URLSearchParams();
+    // Use form encoding for all methods
+    const formData = new URLSearchParams();
       
       // Add query parameters first
       Object.entries(queryParams).forEach(([key, value]) => {
@@ -1630,9 +1488,8 @@ async function executeApiTool(
         });
       }
       
-      requestData = formData.toString();
-      requestContentType = 'application/x-www-form-urlencoded';
-    }
+    requestData = formData.toString();
+    requestContentType = 'application/x-www-form-urlencoded';
     
     // Set content type header
     headers['content-type'] = requestContentType;
