@@ -1447,12 +1447,12 @@ async function executeApiTool(
     let requestContentType: string;
     
     // Use form encoding for all methods
-    const formData = new URLSearchParams();
+    const formDataObject: Record<string, string> = {};
       
       // Add query parameters first
       Object.entries(queryParams).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
-          formData.append(key, String(value));
+          formDataObject[key] = String(value);
         }
       });
       
@@ -1472,23 +1472,23 @@ async function executeApiTool(
               // Handle nested objects
               Object.entries(value as Record<string, unknown>).forEach(([nestedKey, nestedValue]) => {
                 if (nestedValue !== undefined && nestedValue !== null) {
-                  formData.append(`${key}[${nestedKey}]`, String(nestedValue));
+                  formDataObject[`${key}[${nestedKey}]`] = String(nestedValue);
                 }
               });
             } else {
               // Handle primitive values (strings, numbers, booleans, arrays)
               if (needsDataWrapper) {
-                formData.append(`data[${key}]`, String(value));
+                formDataObject[`data[${key}]`] = String(value);
               } else {
                 // Add directly without data[] prefix for methods like createUpgrade, getProduct
-                formData.append(key, String(value));
+                formDataObject[key] = String(value);
               }
             }
           }
         });
       }
       
-    requestData = formData.toString();
+    requestData = formDataObject;
     requestContentType = 'application/x-www-form-urlencoded';
     
     // Set content type header
@@ -1504,7 +1504,7 @@ async function executeApiTool(
     // Log request info to stderr (doesn't affect MCP output)
     console.error(`Executing tool "${toolName}": ${config.method} ${config.url}`);
     console.error(`Request body data: ${JSON.stringify(requestBodyData, null, 2)}`);
-    console.error(`Form data: ${requestData}`);
+    console.error(`Form data: ${JSON.stringify(requestData, null, 2)}`);
     console.error(`Request config: ${JSON.stringify(config, null, 2)}`);
     
     // Redact sensitive headers
@@ -1518,6 +1518,7 @@ async function executeApiTool(
     
     // Execute the request
     const response = await axios({ ...config, timeout: 15000 });
+    console.error(`Response: ${JSON.stringify(response.data, null, 2)}`);
 
     // Process and format the response
     let responseText = '';
