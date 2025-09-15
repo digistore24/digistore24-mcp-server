@@ -88,4 +88,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 ENTRYPOINT ["dumb-init", "--"]
 
 # Use exec form of CMD for better signal handling
-CMD ["node", "build/index.js", "--transport=streamable-http"]
+CMD ["node", "build/index.js", "--transport=streamable-http", "--port=3000"]
