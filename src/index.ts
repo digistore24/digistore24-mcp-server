@@ -1505,6 +1505,8 @@ async function executeApiTool(
     console.error(`Executing tool "${toolName}": ${config.method} ${config.url}`);
     console.error(`Request body data: ${JSON.stringify(requestBodyData, null, 2)}`);
     console.error(`Form data: ${requestData}`);
+    console.error(`Request config: ${JSON.stringify(config, null, 2)}`);
+    
     // Redact sensitive headers
     const redactHeader = (name: string, value: unknown) => {
       const lower = name.toLowerCase();
