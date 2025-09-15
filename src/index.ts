@@ -235,96 +235,6 @@ Note: You must ensure the buyer is informed and agrees to automatic upgrades.
     executionParameters: [],
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
-  ["DeleteDeletebuyurl", {
-    name: "DeleteDeletebuyurl",
-    description: `Deletes a BuyUrl object`,
-    inputSchema: {"type":"object","properties":{"id":{"type":"number","description":"ID of the BuyUrl object to delete"}},"required":["id"]},
-    method: "delete",
-    pathTemplate: "/deleteBuyUrl",
-    executionParameters: [{"name":"id","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["DeleteDeleteimage", {
-    name: "DeleteDeleteimage",
-    description: `Deletes an image from the system`,
-    inputSchema: {"type":"object","properties":{"image_id":{"type":"number","description":"ID of the image to delete"}},"required":["image_id"]},
-    method: "delete",
-    pathTemplate: "/deleteImage",
-    executionParameters: [{"name":"image_id","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["DeleteDeleteorderform", {
-    name: "DeleteDeleteorderform",
-    description: `Deletes an order form from the system`,
-    inputSchema: {"type":"object","properties":{"orderform_id":{"type":"number","description":"ID of the order form to delete"}},"required":["orderform_id"]},
-    method: "delete",
-    pathTemplate: "/deleteOrderform",
-    executionParameters: [{"name":"orderform_id","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["DeleteDeletepaymentplan", {
-    name: "DeleteDeletepaymentplan",
-    description: `Deletes a payment plan for a product on Digistore24`,
-    inputSchema: {"type":"object","properties":{"paymentplan_id":{"type":"number","description":"ID of the payment plan to delete"}},"required":["paymentplan_id"]},
-    method: "delete",
-    pathTemplate: "/deletePaymentplan",
-    executionParameters: [{"name":"paymentplan_id","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["DeleteDeleteproduct", {
-    name: "DeleteDeleteproduct",
-    description: `Deletes a user's Digistore24 product`,
-    inputSchema: {"type":"object","properties":{"product_id":{"type":"number","description":"ID of the product to delete"}},"required":["product_id"]},
-    method: "delete",
-    pathTemplate: "/deleteProduct",
-    executionParameters: [{"name":"product_id","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["DeleteDeleteproductgroup", {
-    name: "DeleteDeleteproductgroup",
-    description: `Deletes a product group from Digistore24`,
-    inputSchema: {"type":"object","properties":{"product_group_id":{"type":"number","description":"ID of the product group to delete"}},"required":["product_group_id"]},
-    method: "delete",
-    pathTemplate: "/deleteProductGroup",
-    executionParameters: [{"name":"product_group_id","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["DeleteDeleteshippingcostpolicy", {
-    name: "DeleteDeleteshippingcostpolicy",
-    description: `Deletes a shipping cost policy from Digistore24`,
-    inputSchema: {"type":"object","properties":{"policy_id":{"type":"number","description":"ID of the shipping cost policy to delete"}},"required":["policy_id"]},
-    method: "delete",
-    pathTemplate: "/deleteShippingCostPolicy",
-    executionParameters: [{"name":"policy_id","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["DeleteDeleteupgrade", {
-    name: "DeleteDeleteupgrade",
-    description: `Deletes an upgrade from Digistore24`,
-    inputSchema: {"type":"object","properties":{"upgrade_id":{"type":"number","description":"ID of the upgrade to delete"}},"required":["upgrade_id"]},
-    method: "delete",
-    pathTemplate: "/deleteUpgrade",
-    executionParameters: [{"name":"upgrade_id","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["DeleteDeleteupsells", {
-    name: "DeleteDeleteupsells",
-    description: `Delete all upsells for a Digistore24 product`,
-    inputSchema: {"type":"object","properties":{"product_id":{"type":"number","description":"ID of the product whose upsells should be deleted"}},"required":["product_id"]},
-    method: "delete",
-    pathTemplate: "/deleteUpsells",
-    executionParameters: [{"name":"product_id","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["DeleteDeletevoucher", {
-    name: "DeleteDeletevoucher",
-    description: `Deletes a discount code/voucher`,
-    inputSchema: {"type":"object","properties":{"code":{"type":"string","description":"The voucher code or voucher ID to delete"}},"required":["code"]},
-    method: "delete",
-    pathTemplate: "/deleteVoucher",
-    executionParameters: [{"name":"code","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
   ["GetGetaffiliatecommission", {
     name: "GetGetaffiliatecommission",
     description: `Returns the affiliate commission details for an affiliate`,
@@ -1364,7 +1274,7 @@ async function executeApiTool(
         const ctx = getRequestContext();
         if (ctx?.apiKey) {
             headers['X-DS-API-KEY'] = String(ctx.apiKey);
-            console.error('Applied request-scoped X-DS-API-KEY');
+            console.info('Applied request-scoped X-DS-API-KEY');
         }
     } catch {}
 
@@ -1392,8 +1302,6 @@ async function executeApiTool(
         // Apply each security scheme from this requirement (combined with AND)
         for (const [schemeName, scopesArray] of Object.entries(appliedSecurity)) {
             const scheme = allSecuritySchemes[schemeName];
-            // Avoid logging secrets; only log scheme name
-            console.error(`Applying security scheme '${schemeName}'`);
             // API Key security
             if (scheme?.type === 'apiKey') {
                 const ctx = getRequestContext();
@@ -1403,15 +1311,15 @@ async function executeApiTool(
                     if (scheme.in === 'header' && typeof scheme.name === 'string') {
                         // Preserve original header case for DS24
                         headers[scheme.name] = apiKey;
-                        console.error(`Applied API key '${schemeName}' in header '${scheme.name}'`);
+                        console.info(`Applied API key '${schemeName}' in header '${scheme.name}'`);
                     }
                     else if (scheme.in === 'query' && typeof scheme.name === 'string') {
                         queryParams[scheme.name] = apiKey;
-                        console.error(`Applied API key '${schemeName}' in query parameter '${scheme.name}'`);
+                        console.info(`Applied API key '${schemeName}' in query parameter '${scheme.name}'`);
                     }
                     else if (scheme.in === 'cookie' && typeof scheme.name === 'string') {
                         headers['cookie'] = `${scheme.name}=${apiKey}${headers['cookie'] ? `; ${headers['cookie']}` : ''}`;
-                        console.error(`Applied API key '${schemeName}' in cookie '${scheme.name}'`);
+                        console.info(`Applied API key '${schemeName}' in cookie '${scheme.name}'`);
                     }
                 }
             } 
@@ -1502,10 +1410,7 @@ async function executeApiTool(
     };
 
     // Log request info to stderr (doesn't affect MCP output)
-    console.error(`Executing tool "${toolName}": ${config.method} ${config.url}`);
-    console.error(`Request body data: ${JSON.stringify(requestBodyData, null, 2)}`);
-    console.error(`Form data: ${JSON.stringify(requestData, null, 2)}`);
-    console.error(`Request config: ${JSON.stringify(config, null, 2)}`);
+    console.info(`Executing tool "${toolName}": ${config.method} ${config.url}`);
     
     // Redact sensitive headers
     const redactHeader = (name: string, value: unknown) => {
@@ -1514,11 +1419,9 @@ async function executeApiTool(
       return value;
     };
     const redactedHeaders = Object.fromEntries(Object.entries(config.headers || {}).map(([k, v]) => [k, redactHeader(k, v)]));
-    console.error(`Headers: ${JSON.stringify(redactedHeaders, null, 2)}`);
     
     // Execute the request
     const response = await axios({ ...config, timeout: 15000 });
-    console.error(`Response: ${JSON.stringify(response.data, null, 2)}`);
 
     // Process and format the response
     let responseText = '';
@@ -1608,7 +1511,7 @@ async function main() {
     // Set up stdio transport (default for MCP)
     const transport = new StdioServerTransport();
     await server.connect(transport);
-    console.error("MCP server running on stdio");
+    console.info("MCP server running on stdio");
   }
 }
 
@@ -1616,7 +1519,7 @@ async function main() {
  * Cleanup function for graceful shutdown
  */
 async function cleanup() {
-    console.error("Shutting down MCP server...");
+    console.info("Shutting down MCP server...");
     try {
         // Attempt to cleanup HTTP session resources if running in HTTP mode
         const handler = (httpServerContext as Record<string, unknown>)?.mcpHandler;
