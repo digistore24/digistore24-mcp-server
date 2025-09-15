@@ -44,7 +44,7 @@ export class MCPStreamableHttpServer {
    * Handle GET requests (returns Method Not Allowed)
    */
   async handleGetRequest(c: any) {
-    console.error("GET request received - StreamableHTTP transport only supports POST");
+    console.info("GET request received - StreamableHTTP transport only supports POST");
     return c.text('Method Not Allowed', 405, {
       'Allow': 'POST'
     });
@@ -55,7 +55,7 @@ export class MCPStreamableHttpServer {
    */
   async handlePostRequest(c: any) {
     const sessionId = c.req.header(SESSION_ID_HEADER_NAME);
-    console.error(`POST request received ${sessionId ? 'with session ID: ' + sessionId : 'without session ID'}`);
+    console.info(`POST request received ${sessionId ? 'with session ID: ' + sessionId : 'without session ID'}`);
     
     // Extract API key from Authorization header only
     const authHeader = c.req.header('authorization');
@@ -71,7 +71,7 @@ export class MCPStreamableHttpServer {
       );
     }
     
-    console.error(`API key provided via Authorization header for request`);
+    console.info(`API key provided via Authorization header for request`);
     
     try {
       const body = await c.req.json();
@@ -92,7 +92,7 @@ export class MCPStreamableHttpServer {
           
           // Cleanup when the response ends
           res.on('close', () => {
-            console.error(`Request closed for session ${sessionId}`);
+            console.info(`Request closed for session ${sessionId}`);
           });
           
           // Convert Node.js response back to Fetch Response
@@ -101,7 +101,7 @@ export class MCPStreamableHttpServer {
         
         // Create new transport for initialize requests
         if (!sessionId && this.isInitializeRequest(body)) {
-          console.error("Creating new StreamableHTTP transport for initialize request");
+          console.info("Creating new StreamableHTTP transport for initialize request");
           
           const transport = new StreamableHTTPServerTransport({
             sessionIdGenerator: () => uuid(),
@@ -121,7 +121,7 @@ export class MCPStreamableHttpServer {
           // Store the transport if we have a session ID
           const newSessionId = transport.sessionId;
           if (newSessionId) {
-            console.error(`New session established: ${newSessionId}`);
+            console.info(`New session established: ${newSessionId}`);
             this.transports[newSessionId] = transport;
             this.sessionLastActive[newSessionId] = Date.now();
             
@@ -130,14 +130,14 @@ export class MCPStreamableHttpServer {
             
             // Set up clean-up for when the transport is closed
             transport.onclose = () => {
-              console.error(`Session closed: ${newSessionId}`);
+              console.info(`Session closed: ${newSessionId}`);
               this.removeTransport(newSessionId, true);
             };
           }
           
           // Cleanup when the response ends
           res.on('close', () => {
-            console.error(`Request closed for new session`);
+            console.info(`Request closed for new session`);
           });
           
           // Convert Node.js response back to Fetch Response
@@ -210,7 +210,7 @@ export class MCPStreamableHttpServer {
     });
     
     if (expiredSessions.length > 0) {
-      console.error(`Cleaned up ${expiredSessions.length} expired sessions`);
+      console.info(`Cleaned up ${expiredSessions.length} expired sessions`);
     }
   }
   
@@ -248,7 +248,7 @@ export class MCPStreamableHttpServer {
       clearTimeout(this.transportTimeouts[sessionId]);
     }
     this.transportTimeouts[sessionId] = setTimeout(() => {
-      console.error(`Session timeout for ${sessionId}`);
+      console.info(`Session timeout for ${sessionId}`);
       this.removeTransport(sessionId);
     }, this.SESSION_TIMEOUT_MS);
     // Allow process to exit even if timers exist
@@ -368,9 +368,9 @@ export async function setupStreamableHttpServer(server: Server, port = 3000) {
     fetch: app.fetch,
     port
   }, (info) => {
-    console.error(`MCP StreamableHTTP Server running at http://localhost:${info.port}`);
-    console.error(`- MCP Endpoint: http://localhost:${info.port}/mcp`);
-    console.error(`- Health Check: http://localhost:${info.port}/health`);
+    console.info(`MCP StreamableHTTP Server running at http://localhost:${info.port}`);
+    console.info(`- MCP Endpoint: http://localhost:${info.port}/mcp`);
+    console.info(`- Health Check: http://localhost:${info.port}/health`);
   });
   
   return { app, mcpHandler } as const;
