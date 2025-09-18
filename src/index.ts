@@ -73,18 +73,6 @@ const server = new Server(
  * Map of tool definitions by name
  */
 const toolDefinitionMap: Map<string, McpToolDefinition> = new Map([
-
-  ["PostAddbalancetopurchase", {
-    name: "PostAddbalancetopurchase",
-    description: `For subscription and installment payments - add balance to the order.
-This will be billed with the next payments.
-`,
-    inputSchema: {"type":"object","properties":{"purchase_id":{"type":"string","description":"The Digistore24 order ID"},"amount":{"type":"number","format":"float","description":"The balance to be added in the currency of the order. If amount is <0, the balance will be reduced. The balance cannot be less than 0."}},"required":["purchase_id","amount"]},
-    method: "post",
-    pathTemplate: "/addBalanceToPurchase",
-    executionParameters: [{"name":"purchase_id","in":"query"},{"name":"amount","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
   ["PostCopyproduct", {
     name: "PostCopyproduct",
     description: `Copies a product on Digistore24`,
@@ -233,96 +221,6 @@ Note: You must ensure the buyer is informed and agrees to automatic upgrades.
     method: "post",
     pathTemplate: "/createVoucher",
     executionParameters: [],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["DeleteDeletebuyurl", {
-    name: "DeleteDeletebuyurl",
-    description: `Deletes a BuyUrl object`,
-    inputSchema: {"type":"object","properties":{"id":{"type":"number","description":"ID of the BuyUrl object to delete"}},"required":["id"]},
-    method: "delete",
-    pathTemplate: "/deleteBuyUrl",
-    executionParameters: [{"name":"id","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["DeleteDeleteimage", {
-    name: "DeleteDeleteimage",
-    description: `Deletes an image from the system`,
-    inputSchema: {"type":"object","properties":{"image_id":{"type":"number","description":"ID of the image to delete"}},"required":["image_id"]},
-    method: "delete",
-    pathTemplate: "/deleteImage",
-    executionParameters: [{"name":"image_id","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["DeleteDeleteorderform", {
-    name: "DeleteDeleteorderform",
-    description: `Deletes an order form from the system`,
-    inputSchema: {"type":"object","properties":{"orderform_id":{"type":"number","description":"ID of the order form to delete"}},"required":["orderform_id"]},
-    method: "delete",
-    pathTemplate: "/deleteOrderform",
-    executionParameters: [{"name":"orderform_id","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["DeleteDeletepaymentplan", {
-    name: "DeleteDeletepaymentplan",
-    description: `Deletes a payment plan for a product on Digistore24`,
-    inputSchema: {"type":"object","properties":{"paymentplan_id":{"type":"number","description":"ID of the payment plan to delete"}},"required":["paymentplan_id"]},
-    method: "delete",
-    pathTemplate: "/deletePaymentplan",
-    executionParameters: [{"name":"paymentplan_id","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["DeleteDeleteproduct", {
-    name: "DeleteDeleteproduct",
-    description: `Deletes a user's Digistore24 product`,
-    inputSchema: {"type":"object","properties":{"product_id":{"type":"number","description":"ID of the product to delete"}},"required":["product_id"]},
-    method: "delete",
-    pathTemplate: "/deleteProduct",
-    executionParameters: [{"name":"product_id","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["DeleteDeleteproductgroup", {
-    name: "DeleteDeleteproductgroup",
-    description: `Deletes a product group from Digistore24`,
-    inputSchema: {"type":"object","properties":{"product_group_id":{"type":"number","description":"ID of the product group to delete"}},"required":["product_group_id"]},
-    method: "delete",
-    pathTemplate: "/deleteProductGroup",
-    executionParameters: [{"name":"product_group_id","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["DeleteDeleteshippingcostpolicy", {
-    name: "DeleteDeleteshippingcostpolicy",
-    description: `Deletes a shipping cost policy from Digistore24`,
-    inputSchema: {"type":"object","properties":{"policy_id":{"type":"number","description":"ID of the shipping cost policy to delete"}},"required":["policy_id"]},
-    method: "delete",
-    pathTemplate: "/deleteShippingCostPolicy",
-    executionParameters: [{"name":"policy_id","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["DeleteDeleteupgrade", {
-    name: "DeleteDeleteupgrade",
-    description: `Deletes an upgrade from Digistore24`,
-    inputSchema: {"type":"object","properties":{"upgrade_id":{"type":"number","description":"ID of the upgrade to delete"}},"required":["upgrade_id"]},
-    method: "delete",
-    pathTemplate: "/deleteUpgrade",
-    executionParameters: [{"name":"upgrade_id","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["DeleteDeleteupsells", {
-    name: "DeleteDeleteupsells",
-    description: `Delete all upsells for a Digistore24 product`,
-    inputSchema: {"type":"object","properties":{"product_id":{"type":"number","description":"ID of the product whose upsells should be deleted"}},"required":["product_id"]},
-    method: "delete",
-    pathTemplate: "/deleteUpsells",
-    executionParameters: [{"name":"product_id","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["DeleteDeletevoucher", {
-    name: "DeleteDeletevoucher",
-    description: `Deletes a discount code/voucher`,
-    inputSchema: {"type":"object","properties":{"code":{"type":"string","description":"The voucher code or voucher ID to delete"}},"required":["code"]},
-    method: "delete",
-    pathTemplate: "/deleteVoucher",
-    executionParameters: [{"name":"code","in":"query"}],
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["GetGetaffiliatecommission", {
@@ -552,33 +450,6 @@ Keys consist of 1-5 characters, only y and n, always beginning with y.
     method: "get",
     pathTemplate: "/getVoucher",
     executionParameters: [{"name":"code","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["ipnDelete", {
-    name: "ipnDelete",
-    description: `Deletes the IPN connection with the given domain_id`,
-    inputSchema: {"type":"object","properties":{"domain_id":{"type":"string","description":"Used to delete the IPN connection"}},"required":["domain_id"]},
-    method: "delete",
-    pathTemplate: "/ipnDelete",
-    executionParameters: [{"name":"domain_id","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["ipnInfo", {
-    name: "ipnInfo",
-    description: `Returns the settings of the IPN connection`,
-    inputSchema: {"type":"object","properties":{"domain_id":{"type":"string","description":"Domain ID specified when creating the connection using ipnSetup"}}},
-    method: "get",
-    pathTemplate: "/ipnInfo",
-    executionParameters: [{"name":"domain_id","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["ipnSetup", {
-    name: "ipnSetup",
-    description: `Creates an IPN connection for receiving notifications`,
-    inputSchema: {"type":"object","properties":{"requestBody":{"type":"object","required":["ipn_url","name","product_ids"],"properties":{"ipn_url":{"type":"string","description":"URL where Digistore24 sends the IPN notification"},"name":{"type":"string","description":"The name listed on Digistore (e.g. your platform name)"},"product_ids":{"type":"string","description":"\"all\" or a comma-separated list of product IDs"},"domain_id":{"type":"string","description":"Used to delete the IPN connection and ensure uniqueness. Usually your platform name"},"categories":{"type":"string","description":"Comma separated list of transaction categories"},"transactions":{"type":"string","description":"Comma-separated list of transaction types","default":"payment,refund,chargeback,payment_missed"},"timing":{"type":"string","enum":["before_thankyou","delayed"],"default":"before_thankyou","description":"Controls when the IPN notification is sent"},"sha_passphrase":{"type":"string","maxLength":63,"description":"Password for signing parameters. Use \"random\" for auto-generated 30-char password"},"newsletter_send_policy":{"type":"string","enum":["end_policy_send_always","end_if_not_optout","end_if_optout","end_if_optin"],"default":"end_policy_send_always","description":"Controls when to send IPN based on newsletter opt-in status"}},"description":"The JSON request body."}},"required":["requestBody"]},
-    method: "post",
-    pathTemplate: "/ipnSetup",
-    executionParameters: [],
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["listAccountAccess", {
@@ -862,17 +733,6 @@ and chargebacks from joint venture sales.
     executionParameters: [{"name":"email","in":"query"}],
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
-  ["PostCreaterebillingpayment", {
-    name: "PostCreaterebillingpayment",
-    description: `Triggers a rebilling payment for a purchase. Only available for vendors with "Billing on demand" permission.
-The payment plan must be set to "Billing mode: by trigger" in the payment plan details.
-`,
-    inputSchema: {"type":"object","properties":{"purchase_id":{"type":"string","description":"The ID of the purchase to trigger rebilling payment for"}},"required":["purchase_id"]},
-    method: "post",
-    pathTemplate: "/createRebillingPayment",
-    executionParameters: [{"name":"purchase_id","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
   ["ping", {
     name: "ping",
     description: `Tests the connection to the Digistore24 server and determines the server time.`,
@@ -880,60 +740,6 @@ The payment plan must be set to "Billing mode: by trigger" in the payment plan d
     method: "get",
     pathTemplate: "/ping",
     executionParameters: [],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["refundPartially", {
-    name: "refundPartially",
-    description: `Refunds a partial amount of a payment (not the complete payment). The refund amount is treated as a discount. The order status does not change.`,
-    inputSchema: {"type":"object","properties":{"purchase_id":{"type":"string","description":"The purchase ID"},"amount":{"type":"number","format":"float","description":"The amount to refund. Must not be higher than a payment amount."}},"required":["purchase_id","amount"]},
-    method: "post",
-    pathTemplate: "/refundPartially",
-    executionParameters: [{"name":"purchase_id","in":"query"},{"name":"amount","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["refundPurchase", {
-    name: "refundPurchase",
-    description: `Refunds all payments of an order which may be refunded.`,
-    inputSchema: {"type":"object","properties":{"purchase_id":{"type":"string","description":"The purchase ID"},"force":{"type":"boolean","default":false,"description":"If false (default), the refund will only be processed if the refund policy allows it. If true, the refund will be attempted anyway."},"request_date":{"type":"string","format":"date","default":"now","description":"If given, apply refund policies based on the given date. Use this if there is a delay between refund request by the buyer and processing time."}},"required":["purchase_id"]},
-    method: "post",
-    pathTemplate: "/refundPurchase",
-    executionParameters: [{"name":"purchase_id","in":"query"},{"name":"force","in":"query"},{"name":"request_date","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["refundTransaction", {
-    name: "refundTransaction",
-    description: `Refunds a payment for the order.`,
-    inputSchema: {"type":"object","properties":{"transaction_id":{"type":"string","description":"The transaction ID"},"force":{"type":"boolean","default":false,"description":"If false (default), the refund will only be processed if the refund policy allows it. If true, the refund will be attempted anyway."},"request_date":{"type":"string","format":"date","default":"now","description":"If given, apply refund policies based on the given date. Use this if there is a delay between refund request by the buyer and processing time."}},"required":["transaction_id"]},
-    method: "post",
-    pathTemplate: "/refundTransaction",
-    executionParameters: [{"name":"transaction_id","in":"query"},{"name":"force","in":"query"},{"name":"request_date","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["renderJsTrackingCode", {
-    name: "renderJsTrackingCode",
-    description: `Creates a JavaScript code that reads the current affiliate, campaign key and tracking key on a landing page and stores them e.g. in hidden inputs.`,
-    inputSchema: {"type":"object","properties":{"affiliate_input":{"type":"string","description":"The name of the HTML form input field to be updated with the affiliate name"},"campaignkey_input":{"type":"string","description":"The name of the HTML form input field to be updated with the campaign key"},"trackingkey_input":{"type":"string","description":"The name of the HTML form input field to be updated with the tracking key"},"callback":{"type":"string","description":"The name of a JavaScript function that is called up with the transferred data"}}},
-    method: "get",
-    pathTemplate: "/renderJsTrackingCode",
-    executionParameters: [{"name":"affiliate_input","in":"query"},{"name":"campaignkey_input","in":"query"},{"name":"trackingkey_input","in":"query"},{"name":"callback","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["reportFraud", {
-    name: "reportFraud",
-    description: `Reports the customer and/or the affiliate as a fraud.`,
-    inputSchema: {"type":"object","properties":{"transaction_id":{"type":"number","description":"The numeric ID of the fraud transaction"},"who":{"type":"string","enum":["buyer","affiliate","buyer","affiliate"],"description":"Specifies who is being reported as fraud"},"comment":{"type":"string","description":"Explanation of why this is considered a fraud order"}},"required":["transaction_id","who","comment"]},
-    method: "post",
-    pathTemplate: "/reportFraud",
-    executionParameters: [{"name":"transaction_id","in":"query"},{"name":"who","in":"query"},{"name":"comment","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["requestApiKey", {
-    name: "requestApiKey",
-    description: `Initiates the interactive process of creating a new API key.`,
-    inputSchema: {"type":"object","properties":{"permissions":{"type":"string","enum":["read-only","writable"],"description":"The rights of the new key"},"return_url":{"type":"string","description":"URL to redirect the user after API key creation"},"cancel_url":{"type":"string","description":"URL to redirect the user if they cancel the API key creation"},"site_url":{"type":"string","description":"URL to be stored with the key as a website in use"},"comment":{"type":"string","description":"Optional comment to be deposited with the new API key"}},"required":["permissions","return_url"]},
-    method: "post",
-    pathTemplate: "/requestApiKey",
-    executionParameters: [{"name":"permissions","in":"query"},{"name":"return_url","in":"query"},{"name":"cancel_url","in":"query"},{"name":"site_url","in":"query"},{"name":"comment","in":"query"}],
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["resendInvoiceMail", {
@@ -954,15 +760,6 @@ The payment plan must be set to "Billing mode: by trigger" in the payment plan d
     executionParameters: [{"name":"purchase_id","in":"query"}],
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
-  ["retrieveApiKey", {
-    name: "retrieveApiKey",
-    description: `Retrieves the new API key using a token previously returned by the requestApiKey function.`,
-    inputSchema: {"type":"object","properties":{"token":{"type":"string","description":"Token returned by the requestApiKey function"}},"required":["token"]},
-    method: "post",
-    pathTemplate: "/retrieveApiKey",
-    executionParameters: [{"name":"token","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
   ["setAffiliateForEmail", {
     name: "setAffiliateForEmail",
     description: `Assigns an affiliate, campaign key and tracking key to an email address.`,
@@ -979,15 +776,6 @@ The payment plan must be set to "Billing mode: by trigger" in the payment plan d
     method: "post",
     pathTemplate: "/setReferringAffiliate",
     executionParameters: [{"name":"referrer_id","in":"query"},{"name":"affiliate_id","in":"query"},{"name":"commission","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["startRebilling", {
-    name: "startRebilling",
-    description: `Resumes the payments if they have been stopped.`,
-    inputSchema: {"type":"object","properties":{"purchase_id":{"type":"string","description":"The Digistore24 order ID"}},"required":["purchase_id"]},
-    method: "post",
-    pathTemplate: "/startRebilling",
-    executionParameters: [{"name":"purchase_id","in":"query"}],
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["statsAffiliateToplist", {
@@ -1047,26 +835,6 @@ The payment plan must be set to "Billing mode: by trigger" in the payment plan d
     executionParameters: [],
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
-  ["stopRebilling", {
-    name: "stopRebilling",
-    description: `Stops the recurring payments (for subscription and installment payments).
-`,
-    inputSchema: {"type":"object","properties":{"purchase_id":{"type":"string","description":"The Digistore24 order ID"},"force":{"type":"boolean","default":false,"description":"If possible, a rebilling is canceled immediately. If a minimum duration is specified, this will be adhered to by default (for force=false),\nmeaning that it will be canceled at the end of the minimum duration. If force=true, it will be canceled immediately.\n"},"ignore_refund_possibility":{"type":"boolean","default":false,"description":"If false (default), the purchase is cancelled effective immediately if a refund is possible.\nIf true, the cancellation becomes effective at the end of the regular cancellation period.\nThe parameter is ignored if force=true.\n"}},"required":["purchase_id"]},
-    method: "post",
-    pathTemplate: "/stopRebilling",
-    executionParameters: [{"name":"purchase_id","in":"query"},{"name":"force","in":"query"},{"name":"ignore_refund_possibility","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["unregister", {
-    name: "unregister",
-    description: `Deletes the current API key if it was created interactively.
-`,
-    inputSchema: {"type":"object","properties":{}},
-    method: "delete",
-    pathTemplate: "/unregister",
-    executionParameters: [],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
   ["updateAffiliateCommission", {
     name: "updateAffiliateCommission",
     description: `Changes the affiliate commission(s) for one or more products.
@@ -1098,26 +866,6 @@ If product_ids is not "all" and no affiliations have been set up for some produc
     executionParameters: [{"name":"delivery_id","in":"query"},{"name":"notify_via_email","in":"query"}],
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
-  ["updateOrderform", {
-    name: "updateOrderform",
-    description: `Changes an existing order form on Digistore24.
-`,
-    inputSchema: {"type":"object","properties":{"orderform_id":{"type":"number","description":"The ID of the order form to update"},"requestBody":{"type":"object","properties":{"name":{"type":"string","description":"Name of the order form"},"product_id":{"type":"number","description":"ID of the product associated with this order form"},"paymentplan_id":{"type":"number","description":"ID of the payment plan to use"},"is_active":{"type":"boolean","description":"Whether the order form is active"},"is_default":{"type":"boolean","description":"Whether this is the default order form for the product"},"theme":{"type":"string","description":"Theme of the order form"},"language":{"type":"string","description":"Language code for the order form"},"custom_css":{"type":"string","description":"Custom CSS for the order form"},"custom_js":{"type":"string","description":"Custom JavaScript for the order form"},"custom_html":{"type":"string","description":"Custom HTML for the order form"},"custom_fields":{"type":"array","description":"Custom fields configuration","items":{"type":"object"}},"upsell_settings":{"type":"object","description":"Settings for upsells"}},"description":"The JSON request body."}},"required":["orderform_id","requestBody"]},
-    method: "put",
-    pathTemplate: "/updateOrderform",
-    executionParameters: [{"name":"orderform_id","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["updatePaymentplan", {
-    name: "updatePaymentplan",
-    description: `Modifies a payment plan for a product on Digistore24.
-`,
-    inputSchema: {"type":"object","properties":{"paymentplan_id":{"type":"number","description":"The ID of the payment plan to update"},"requestBody":{"type":"object","properties":{"first_amount":{"type":"number","format":"float","description":"The amount for the first payment"},"first_billing_interval":{"type":"string","description":"The billing interval for the first payment"},"currency":{"type":"string","description":"The currency code for the payment plan (e.g., USD, EUR)"},"other_amounts":{"type":"number","format":"float","description":"The amount for subsequent payments"},"other_billing_intervals":{"type":"string","description":"The billing interval for subsequent payments"},"number_of_installments":{"type":"number","description":"The number of installments (0 for subscription, 1 for single payment, >=2 for installment plan)"},"is_active":{"type":"boolean","description":"Whether the payment plan is active"},"cancel_policy":{"type":"string","enum":["6m_0","6m_6m","6m_12m","12m_0","12m_3m","12m_6m","12m_12m","24m_0","24m_6m","24m_12m"],"description":"The cancellation policy (minimum term) for the payment plan"}},"description":"The JSON request body."}},"required":["paymentplan_id","requestBody"]},
-    method: "put",
-    pathTemplate: "/updatePaymentplan",
-    executionParameters: [{"name":"paymentplan_id","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
   ["updateProduct", {
     name: "updateProduct",
     description: `Modifies a user's product on Digistore24.
@@ -1138,16 +886,6 @@ If product_ids is not "all" and no affiliations have been set up for some produc
     executionParameters: [{"name":"product_group_id","in":"query"}],
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
-  ["updatePurchase", {
-    name: "updatePurchase",
-    description: `Changes the tracking data of an order.
-`,
-    inputSchema: {"type":"object","properties":{"purchase_id":{"type":"string","description":"The ID of the purchase to update"},"requestBody":{"type":"object","properties":{"tracking_param":{"type":"string","description":"The vendor's tracking key"},"custom":{"type":"string","description":"The custom field"},"unlock_invoices":{"type":"boolean","description":"If true, access to order details and invoices will be granted to the buyer. Invoice and order details links will then work again. By default, access expires after 3 years."},"next_payment_at":{"type":"string","format":"date-time","description":"Extend the rebilling payment interval. Use this to grant the buyer a payment pause. It's not possible to shorten the payment intervals."}},"description":"The JSON request body."}},"required":["purchase_id","requestBody"]},
-    method: "put",
-    pathTemplate: "/updatePurchase",
-    executionParameters: [{"name":"purchase_id","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
   ["updateServiceProofRequest", {
     name: "updateServiceProofRequest",
     description: `Provides proof that a service was delivered to a buyer when requested by Digistore24.
@@ -1158,16 +896,6 @@ that the service was actually provided.
     method: "put",
     pathTemplate: "/updateServiceProofRequest",
     executionParameters: [{"name":"service_proof_id","in":"query"}],
-    securityRequirements: [{"ApiKeyAuth":[]}]
-  }],
-  ["updateShippingCostPolicy", {
-    name: "updateShippingCostPolicy",
-    description: `Updates an existing shipping cost policy with new settings.
-`,
-    inputSchema: {"type":"object","properties":{"policy_id":{"type":"number","description":"The ID of the shipping cost policy to update"},"requestBody":{"type":"object","properties":{"name":{"type":"string","maxLength":63,"description":"Name of the shipping cost policy"},"label_XX":{"type":"string","maxLength":63,"description":"Label on order form. Replace XX by the desired language code (e.g., label_en, label_de)"},"position":{"type":"number","default":100,"description":"Display position of the policy"},"is_active":{"type":"boolean","default":true,"description":"Whether the policy is active"},"for_product_ids":{"type":"string","description":"Comma-separated list of product IDs this policy applies to. Default is \"all\""},"for_countries":{"type":"string","description":"Comma-separated list of two-character ISO country codes this policy applies to (e.g., US,CA,UK). Default is \"all\""},"for_currencies":{"type":"string","description":"Comma-separated list of three-character currency codes this policy applies to (e.g., USD,EUR). Default is \"all\""},"fee_type":{"type":"string","enum":["total_fee","fee_per_unit"],"description":"Type of fee calculation"},"billing_cycle":{"type":"string","enum":["once","monthly"],"description":"When the shipping fee is charged"},"currency":{"type":"string","description":"Currency of the shipping fees (e.g., USD, EUR)"},"scale_level_count":{"type":"number","minimum":1,"maximum":5,"default":1,"description":"Number of discount levels (1-5)"},"scale_1_amount":{"type":"number","format":"float","description":"Shipping cost amount for the first level"},"scale_2_from":{"type":"number","description":"Number of items for second discount level"},"scale_2_amount":{"type":"number","format":"float","description":"Shipping cost amount for scale_2_from or more items"},"scale_3_from":{"type":"number","description":"Number of items for third discount level"},"scale_3_amount":{"type":"number","format":"float","description":"Shipping cost amount for scale_3_from or more items"},"scale_4_from":{"type":"number","description":"Number of items for fourth discount level"},"scale_4_amount":{"type":"number","format":"float","description":"Shipping cost amount for scale_4_from or more items"},"scale_5_from":{"type":"number","description":"Number of items for fifth discount level"},"scale_5_amount":{"type":"number","format":"float","description":"Shipping cost amount for scale_5_from or more items"}},"description":"The JSON request body."}},"required":["policy_id","requestBody"]},
-    method: "put",
-    pathTemplate: "/updateShippingCostPolicy",
-    executionParameters: [{"name":"policy_id","in":"query"}],
     securityRequirements: [{"ApiKeyAuth":[]}]
   }],
   ["updateUpsells", {
@@ -1364,7 +1092,7 @@ async function executeApiTool(
         const ctx = getRequestContext();
         if (ctx?.apiKey) {
             headers['X-DS-API-KEY'] = String(ctx.apiKey);
-            console.error('Applied request-scoped X-DS-API-KEY');
+            console.info('Applied request-scoped X-DS-API-KEY');
         }
     } catch {}
 
@@ -1392,8 +1120,6 @@ async function executeApiTool(
         // Apply each security scheme from this requirement (combined with AND)
         for (const [schemeName, scopesArray] of Object.entries(appliedSecurity)) {
             const scheme = allSecuritySchemes[schemeName];
-            // Avoid logging secrets; only log scheme name
-            console.error(`Applying security scheme '${schemeName}'`);
             // API Key security
             if (scheme?.type === 'apiKey') {
                 const ctx = getRequestContext();
@@ -1403,15 +1129,15 @@ async function executeApiTool(
                     if (scheme.in === 'header' && typeof scheme.name === 'string') {
                         // Preserve original header case for DS24
                         headers[scheme.name] = apiKey;
-                        console.error(`Applied API key '${schemeName}' in header '${scheme.name}'`);
+                        console.info(`Applied API key '${schemeName}' in header '${scheme.name}'`);
                     }
                     else if (scheme.in === 'query' && typeof scheme.name === 'string') {
                         queryParams[scheme.name] = apiKey;
-                        console.error(`Applied API key '${schemeName}' in query parameter '${scheme.name}'`);
+                        console.info(`Applied API key '${schemeName}' in query parameter '${scheme.name}'`);
                     }
                     else if (scheme.in === 'cookie' && typeof scheme.name === 'string') {
                         headers['cookie'] = `${scheme.name}=${apiKey}${headers['cookie'] ? `; ${headers['cookie']}` : ''}`;
-                        console.error(`Applied API key '${schemeName}' in cookie '${scheme.name}'`);
+                        console.info(`Applied API key '${schemeName}' in cookie '${scheme.name}'`);
                     }
                 }
             } 
@@ -1460,7 +1186,7 @@ async function executeApiTool(
       if (requestBodyData && typeof requestBodyData === 'object') {
         // Check if this method needs data[] wrapper based on method name
         const methodsNeedingDataWrapper = [
-          'createVoucher', 'createProduct', 'createBuyUrl', 'createAffiliate'
+          'createVoucher', 'createProduct', 'createBuyUrl'
         ];
         const methodName = definition.pathTemplate.replace('/', '');
         const needsDataWrapper = methodsNeedingDataWrapper.includes(methodName);
@@ -1502,10 +1228,7 @@ async function executeApiTool(
     };
 
     // Log request info to stderr (doesn't affect MCP output)
-    console.error(`Executing tool "${toolName}": ${config.method} ${config.url}`);
-    console.error(`Request body data: ${JSON.stringify(requestBodyData, null, 2)}`);
-    console.error(`Form data: ${JSON.stringify(requestData, null, 2)}`);
-    console.error(`Request config: ${JSON.stringify(config, null, 2)}`);
+    console.info(`Executing tool "${toolName}": ${config.method} ${config.url}`);
     
     // Redact sensitive headers
     const redactHeader = (name: string, value: unknown) => {
@@ -1514,11 +1237,9 @@ async function executeApiTool(
       return value;
     };
     const redactedHeaders = Object.fromEntries(Object.entries(config.headers || {}).map(([k, v]) => [k, redactHeader(k, v)]));
-    console.error(`Headers: ${JSON.stringify(redactedHeaders, null, 2)}`);
     
     // Execute the request
     const response = await axios({ ...config, timeout: 15000 });
-    console.error(`Response: ${JSON.stringify(response.data, null, 2)}`);
 
     // Process and format the response
     let responseText = '';
@@ -1608,7 +1329,7 @@ async function main() {
     // Set up stdio transport (default for MCP)
     const transport = new StdioServerTransport();
     await server.connect(transport);
-    console.error("MCP server running on stdio");
+    console.info("MCP server running on stdio");
   }
 }
 
@@ -1616,7 +1337,7 @@ async function main() {
  * Cleanup function for graceful shutdown
  */
 async function cleanup() {
-    console.error("Shutting down MCP server...");
+    console.info("Shutting down MCP server...");
     try {
         // Attempt to cleanup HTTP session resources if running in HTTP mode
         const handler = (httpServerContext as Record<string, unknown>)?.mcpHandler;
